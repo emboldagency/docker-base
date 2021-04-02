@@ -1,5 +1,7 @@
 FROM ubuntu:latest
 
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
 RUN apt-get update --fix-missing
 RUN apt-get upgrade -y
 
