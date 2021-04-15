@@ -239,6 +239,29 @@ function gad() {
     fi
 }
 
+function fixperms() {
+  echo "Fixing global owner..."
+  sudo find . -exec chown embold:embold {} \;
+  echo "Fixing global directory permissions..."
+  find . -type d -exec chmod 755 {} \;
+  echo "Fixing global file permissions..."
+  find . -type f -exec chmod 644 {} \;
+
+  echo "Fixing wp-config owner group..."
+  sudo chgrp embold ./wp-config.php
+  echo "Fixing wp-config permissions..."
+  chmod 660 ./wp-config.php
+
+  echo "Fixing wp-content owner group..."
+  sudo find ./wp-content -exec chgrp embold {} \;
+  echo "Fixing wp-content directory permissions..."
+  find ./wp-content -type d -exec chmod 775 {} \;
+  echo "Fixing wp-content directory permissions..."
+  find ./wp-content -type f -exec chmod 664 {} \;
+
+  echo "Done!"
+}
+
 alias flushdns='sudo systemd-resolve --flush-caches'
 
 alias zd='z -c'
