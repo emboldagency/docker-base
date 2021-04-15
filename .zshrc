@@ -240,24 +240,40 @@ function gad() {
 }
 
 function fixperms() {
+  # https://askubuntu.com/questions/574870/wordpress-cant-upload-files
+  WP_OWNER=embold # <-- wordpress owner
+  WP_GROUP=embold # <-- wordpress group
+  WS_GROUP=embold # <-- webserver group
+
+  if [ "$1" = "" ]; then
+    WP_ROOT=~/code/${HOSTNAME} # <-- wordpress root directory
+  else
+    WP_ROOT=$1 # <-- wordpress root directory
+  fi
+
+  echo "Perms fix for ${WP_ROOT}"
+
+  # reset to safe defaults
   echo "Fixing global owner..."
-  sudo find . -exec chown embold:embold {} \;
+  sudo find ${WP_ROOT} -exec chown ${WP_OWNER}:${WP_GROUP} {} \;
   echo "Fixing global directory permissions..."
-  find . -type d -exec chmod 755 {} \;
+  find ${WP_ROOT} -type d -exec chmod 755 {} \;
   echo "Fixing global file permissions..."
-  find . -type f -exec chmod 644 {} \;
+  find ${WP_ROOT} -type f -exec chmod 644 {} \;
 
+  # allow wordpress to manage wp-config.php (but prevent world access)
   echo "Fixing wp-config owner group..."
-  sudo chgrp embold ./wp-config.php
+  sudo chgrp ${WS_GROUP} ${WP_ROOT}/wp-config.php
   echo "Fixing wp-config permissions..."
-  chmod 660 ./wp-config.php
+  chmod 660 ${WP_ROOT}/wp-config.php
 
+  # allow wordpress to manage wp-content
   echo "Fixing wp-content owner group..."
-  sudo find ./wp-content -exec chgrp embold {} \;
+  sudo find ${WP_ROOT}/wp-content -exec chgrp ${WS_GROUP} {} \;
   echo "Fixing wp-content directory permissions..."
-  find ./wp-content -type d -exec chmod 775 {} \;
+  find ${WP_ROOT}/wp-content -type d -exec chmod 775 {} \;
   echo "Fixing wp-content directory permissions..."
-  find ./wp-content -type f -exec chmod 664 {} \;
+  find ${WP_ROOT}/wp-content -type f -exec chmod 664 {} \;
 
   echo "Done!"
 }
