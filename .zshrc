@@ -262,18 +262,36 @@ function fixperms() {
   find ${WP_ROOT} -type f -exec chmod 644 {} \;
 
   # allow wordpress to manage wp-config.php (but prevent world access)
-  echo "Fixing wp-config owner group..."
-  sudo chgrp ${WS_GROUP} ${WP_ROOT}/wp-config.php
-  echo "Fixing wp-config permissions..."
-  chmod 660 ${WP_ROOT}/wp-config.php
+  if [[ -a ${WP_ROOT}/wp-config.php ]]; then
+    echo "Fixing wp-config owner group..."
+    sudo chgrp ${WS_GROUP} ${WP_ROOT}/wp-config.php
+    echo "Fixing wp-config permissions..."
+    chmod 660 ${WP_ROOT}/wp-config.php
+  fi
+  if [[ -a ${WP_ROOT}/.env ]]; then
+    echo "Fixing .env owner group..."
+    sudo chgrp ${WS_GROUP} ${WP_ROOT}/.env
+    echo "Fixing .env permissions..."
+    chmod 660 ${WP_ROOT}/.env
+  fi
 
   # allow wordpress to manage wp-content
-  echo "Fixing wp-content owner group..."
-  sudo find ${WP_ROOT}/wp-content -exec chgrp ${WS_GROUP} {} \;
-  echo "Fixing wp-content directory permissions..."
-  find ${WP_ROOT}/wp-content -type d -exec chmod 775 {} \;
-  echo "Fixing wp-content directory permissions..."
-  find ${WP_ROOT}/wp-content -type f -exec chmod 664 {} \;
+  if [[ -d ${WP_ROOT}/wp-content ]]; then
+    echo "Fixing wp-content owner group..."
+    find ${WP_ROOT}/wp-content -exec chgrp ${WS_GROUP} {} \;
+    echo "Fixing wp-content directory permissions..."
+    find ${WP_ROOT}/wp-content -type d -exec chmod 775 {} \;
+    echo "Fixing wp-content directory permissions..."
+    find ${WP_ROOT}/wp-content -type f -exec chmod 664 {} \;
+  fi
+  if [[ -d ${WP_ROOT}/web/app ]]; then
+    echo "Fixing web/app owner group..."
+    find ${WP_ROOT}/web/app -exec chgrp ${WS_GROUP} {} \;
+    echo "Fixing web/app directory permissions..."
+    find ${WP_ROOT}/web/app -type d -exec chmod 775 {} \;
+    echo "Fixing web/app directory permissions..."
+    find ${WP_ROOT}/web/app -type f -exec chmod 664 {} \;
+  fi
 
   echo "Done!"
 }
