@@ -281,7 +281,7 @@ function fixperms() {
     find ${WP_ROOT}/wp-content -exec chgrp ${WS_GROUP} {} \;
     echo "Fixing wp-content directory permissions..."
     find ${WP_ROOT}/wp-content -type d -exec chmod 775 {} \;
-    echo "Fixing wp-content directory permissions..."
+    echo "Fixing wp-content file permissions..."
     find ${WP_ROOT}/wp-content -type f -exec chmod 664 {} \;
   fi
   if [[ -d ${WP_ROOT}/web/app ]]; then
@@ -289,8 +289,14 @@ function fixperms() {
     find ${WP_ROOT}/web/app -exec chgrp ${WS_GROUP} {} \;
     echo "Fixing web/app directory permissions..."
     find ${WP_ROOT}/web/app -type d -exec chmod 775 {} \;
-    echo "Fixing web/app directory permissions..."
+    echo "Fixing web/app file permissions..."
     find ${WP_ROOT}/web/app -type f -exec chmod 664 {} \;
+  fi
+
+  # laravel storage directory
+  if [[ -d ${WP_ROOT}/storage ]]; then
+    echo "Fixing storage directory permissions..."
+    sudo chmod -R ug+w ${WP_ROOT}/storage
   fi
 
   echo "Done!"
