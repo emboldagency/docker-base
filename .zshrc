@@ -302,6 +302,31 @@ function fixperms() {
   echo "Done!"
 }
 
+# maintenance tasks, requires a space seperated list of pulsar apps in .zshrc as below
+# export MAINTENANCE_SITES='site1 site2'
+function maint() {
+  site_array=("${(@s/ /)MAINTENANCE_SITES}")
+
+  for site in "${site_array[@]}"; do
+    case $1 in
+    start)
+      echo "\nStarting maintenance for: $site"
+      pulsar task $site production git:commit
+      pulsar task $site staging git:pull
+      ;;
+    end)
+      echo "\nEnding maintenance for: $site"
+      pulsar task $site staging git:commit
+      pulsar task $site production wp:core
+      pulsar task $site production git:pull
+      ;;
+    *)
+      echo "Supply a valid argument"
+      ;;
+    esac
+  done
+}
+
 alias flushdns='sudo systemd-resolve --flush-caches'
 
 alias zd='z -c'
@@ -316,3 +341,4 @@ export PULSAR_DIRECTORY="/home/embold/pulsar"
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export PATH="$PATH:/snap/bin"
+
