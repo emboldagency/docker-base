@@ -313,12 +313,14 @@ function maint() {
       echo "\nStarting maintenance for: $site"
       pulsar task $site production git:commit
       pulsar task $site staging git:pull
+      pulsar task $site production wp:cache
       ;;
     end)
       echo "\nEnding maintenance for: $site"
       pulsar task $site staging git:commit
       pulsar task $site production wp:core
       pulsar task $site production git:pull
+      pulsar task $site production wp:cache
       ;;
     *)
       echo "Supply a valid argument"
