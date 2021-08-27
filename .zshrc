@@ -307,23 +307,34 @@ function fixperms() {
 function maint() {
   site_array=("${(@s/ /)MAINTENANCE_SITES}")
 
+  cyan="\e[96m"
+  red="\e[91m"
+  default="\e[39m"
+
+
   for site in "${site_array[@]}"; do
     case $1 in
     start)
+      echo "$cyan"
       echo "\nStarting maintenance for: $site"
+      echo "$default"
       pulsar task $site production git:commit
       pulsar task $site staging git:pull
-      pulsar task $site production wp:cache
+      pulsar task $site staging wp:cache
       ;;
     end)
+      echo "$cyan"
       echo "\nEnding maintenance for: $site"
+      echo "$default"
       pulsar task $site staging git:commit
       pulsar task $site production wp:core
       pulsar task $site production git:pull
       pulsar task $site production wp:cache
       ;;
     *)
+      echo "$red"
       echo "Supply a valid argument"
+      echo "$default"
       ;;
     esac
   done
