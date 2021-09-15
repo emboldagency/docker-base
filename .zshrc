@@ -320,6 +320,8 @@ function maint() {
       echo "$default"
       pulsar task $site production git:commit
       pulsar task $site staging git:pull
+      pulsar task $site staging laraish:update
+      pulsar task $site staging deploy:bedrock
       pulsar task $site staging wp:cache
       ;;
     end)
@@ -329,6 +331,8 @@ function maint() {
       pulsar task $site staging git:commit
       pulsar task $site production wp:core
       pulsar task $site production git:pull
+      pulsar task $site production laraish:update
+      pulsar task $site production deploy:bedrock
       pulsar task $site production wp:cache
       ;;
     *)
