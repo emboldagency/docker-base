@@ -116,6 +116,18 @@ VOLUME /var/lib/mysql
 VOLUME /var/log/mysql
 VOLUME /etc/apache2
 
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
+    libxtst6 \
+    libxrender1 \
+    libfontconfig1 \
+    libxi6 \
+    libgtk-3-0
+
+RUN mkdir -p /opt/idea
+RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
+
+RUN ln -s /opt/idea/bin/phpstorm.sh /usr/bin/phpstorm
+
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
   echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 RUN adduser embold www-data
