@@ -123,7 +123,7 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
     libxi6 \
     libgtk-3-0
 
-Rp /opt/idea
+RUN mkdir -p /opt/idea
 RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -UN mkdir -
 RUN curl -L "https://download.jetbrains.com/product?code=RM&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -UN mkdir -
 
