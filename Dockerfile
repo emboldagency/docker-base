@@ -123,10 +123,12 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
     libxi6 \
     libgtk-3-0
 
-RUN mkdir -p /opt/idea
-RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
+Rp /opt/idea
+RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -UN mkdir -
+RUN curl -L "https://download.jetbrains.com/product?code=RM&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -UN mkdir -
 
 RUN ln -s /opt/idea/bin/phpstorm.sh /usr/bin/phpstorm
+RUN ln -s /opt/idea/bin/rubymine.sh /usr/bin/rubymine
 
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
   echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
