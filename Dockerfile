@@ -124,11 +124,13 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
     libgtk-3-0
 
 RUN mkdir -p /opt/idea
-RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
-RUN curl -L "https://download.jetbrains.com/product?code=RM&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
+#RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/phpstorm --strip-components 1 -xzvf -
+#RUN curl -L "https://download.jetbrains.com/product?code=RM&latest&distribution=linux" | tar -C /opt/rubymine --strip-components 1 -xzvf -
+RUN curl -L "https://download.jetbrains.com/product?code=IU&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
 
-RUN ln -s /opt/idea/bin/phpstorm.sh /usr/bin/phpstorm
-RUN ln -s /opt/idea/bin/rubymine.sh /usr/bin/rubymine
+#RUN ln -s /opt/phpstorm/bin/phpstorm.sh /usr/bin/phpstorm
+#RUN ln -s /opt/rubymine/bin/rubymine.sh /usr/bin/rubymine
+RUN ln -s /opt/idea/bin/idea.sh /usr/bin/intellij-idea-ultimate
 
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
   echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
