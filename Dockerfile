@@ -34,6 +34,7 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
     libxi6 \
     libgtk-3-0 \
 		libssl-dev \
+    libxml2-dev \
 		libreadline-dev \
 		zlib1g-dev \
 		autoconf \
