@@ -34,7 +34,6 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
     libxi6 \
     libgtk-3-0 \
 		libssl-dev \
-    libxml2-dev \
 		libreadline-dev \
 		zlib1g-dev \
 		autoconf \
@@ -46,6 +45,8 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
 		libffi-dev \
 		libgdbm-dev \
 		libsqlite3-dev
+
+RUN apt-get install -y libxml2-dev
 
 RUN chsh -s $(which zsh)
 
