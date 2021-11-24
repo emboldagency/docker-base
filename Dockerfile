@@ -51,7 +51,7 @@ RUN apt-get update && apt-get install -y \
     systemd \
     openssh-server
 		
-RUN systemctl enable ssh
+RUN service ssh start
 
 RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
   echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
