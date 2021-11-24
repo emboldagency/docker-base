@@ -44,7 +44,15 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
 		libncurses5-dev \
 		libffi-dev \
 		libgdbm-dev \
-		libsqlite3-dev
+		libsqlite3-dev \
+		systemd \
+		openssh-server
+		
+RUN systemctl enable ssh
+
+RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
+  echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
+  echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 
 RUN apt-get install -y libxml2-dev
 
