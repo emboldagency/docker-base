@@ -44,9 +44,12 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
 		libncurses5-dev \
 		libffi-dev \
 		libgdbm-dev \
-		libsqlite3-dev \
-		systemd \
-		openssh-server
+		libsqlite3-dev
+		
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    systemd \
+    openssh-server
 		
 RUN systemctl enable ssh
 
