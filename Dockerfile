@@ -45,6 +45,19 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
 		libffi-dev \
 		libgdbm-dev \
 		libsqlite3-dev
+		
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    systemd \
+    openssh-server
+		
+RUN service ssh start
+
+RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
+  echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
+  echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
+
+RUN apt-get install -y libxml2-dev
 
 RUN chsh -s $(which zsh)
 
@@ -115,6 +128,22 @@ VOLUME /var/run/mysqld
 VOLUME /var/lib/mysql
 VOLUME /var/log/mysql
 VOLUME /etc/apache2
+
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
+    libxtst6 \
+    libxrender1 \
+    libfontconfig1 \
+    libxi6 \
+    libgtk-3-0
+
+RUN mkdir -p /opt/idea
+#RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/phpstorm --strip-components 1 -xzvf -
+#RUN curl -L "https://download.jetbrains.com/product?code=RM&latest&distribution=linux" | tar -C /opt/rubymine --strip-components 1 -xzvf -
+RUN curl -L "https://download.jetbrains.com/product?code=IU&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
+
+#RUN ln -s /opt/phpstorm/bin/phpstorm.sh /usr/bin/phpstorm
+#RUN ln -s /opt/rubymine/bin/rubymine.sh /usr/bin/rubymine
+RUN ln -s /opt/idea/bin/idea.sh /usr/bin/intellij-idea-ultimate
 
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
   echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
