@@ -302,9 +302,20 @@ function fixperms() {
   echo "Done!"
 }
 
+# reusable confirm function
+function confirm() {
+  read "?Continue (y/n)? [y/N] " yn
+  case $yn in
+    [Yy]* ) echo "Starting...";;
+    [Nn]* ) echo "Exiting..."; continue;;
+    * ) echo "Invalid input. Please enter y/n.";;
+  esac
+}
+
 # maintenance tasks, requires a space seperated list of pulsar apps in .zshrc as below
 # export MAINTENANCE_SITES='site1 site2'
 function maint() {
+
   site_array=("${(@s/ /)MAINTENANCE_SITES}")
 
   cyan="\e[96m"
@@ -318,6 +329,7 @@ function maint() {
       echo "$cyan"
       echo "\nStarting maintenance for: $site"
       echo "$default"
+      confirm
       pulsar task $site production git:commit
       pulsar task $site staging git:pull
       pulsar task $site staging laraish:update
@@ -328,6 +340,7 @@ function maint() {
       echo "$cyan"
       echo "\nEnding maintenance for: $site"
       echo "$default"
+      confirm
       pulsar task $site staging git:commit
       pulsar task $site production wp:core
       pulsar task $site production git:pull
