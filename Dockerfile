@@ -62,7 +62,7 @@ RUN apt-get install -y libxml2-dev
 RUN chsh -s $(which zsh)
 
 # Install the desired Node version into `/usr/local/`
-ENV NODE_VERSION=12.16.3
+ENV NODE_VERSION=14.15.2
 RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | \
     tar xzfv - \
     --exclude CHANGELOG.md \
