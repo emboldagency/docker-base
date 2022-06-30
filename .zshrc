@@ -80,7 +80,7 @@ export SAVEHIST=50000
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(ugit npm command-not-found last-working-dir per-directory-history web-search extract frontend-search lol zsh-autosuggestions sudo bundler copyfile dircycle zsh-z)
+plugins=(ugit npm command-not-found last-working-dir per-directory-history web-search extract frontend-search zsh-autosuggestions sudo bundler copyfile dircycle zsh-z)
 ZSH_AUTOSUGGEST_USE_ASYNC=true
 ZSH_AUTOSUGGEST_STRATEGY=match_prev_cmd
 bindkey '`' autosuggest-accept
@@ -175,6 +175,14 @@ function deploy() {
                                 destination=$2 pulsar task $APP $1 $3
                         fi
                 fi
+        fi
+}
+
+function yolo() {
+        if [ "$1" = "" ]; then
+                yes | deploy
+        else
+                yes | deploy $1
         fi
 }
 
