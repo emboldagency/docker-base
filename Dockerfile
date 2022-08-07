@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:focal
 
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
