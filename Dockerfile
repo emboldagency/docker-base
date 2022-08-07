@@ -72,7 +72,6 @@ RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x6
 
 RUN apt-get install -y \
 		jq \
-		python \
     libpng-dev
 
 # Set up Ruby
