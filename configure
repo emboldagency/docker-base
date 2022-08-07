@@ -37,6 +37,14 @@ sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/upload_
 
 sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/max_file_uploads\ =\ 20/max_file_uploads\ =\ 300/g" {} \;
 
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.mode = debug'
+
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.start_with_request = yes'
+
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_enable = 1'
+
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_autostart = 1'
+
 sudo sed -i 's/var\/lib\/mysql/home\/embold\/mysql-data/g' /etc/mysql/mariadb.conf.d/50-server.cnf
 
 sudo sed -i 's/AllowOverride\ None/AllowOverride\ All/g' /etc/apache2/apache2.conf
