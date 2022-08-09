@@ -55,7 +55,8 @@ RUN service ssh start
 
 RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
   echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
-  echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
+  echo "X11UseLocalhost no" >> /etc/ssh/sshd_config && \
+  echo "StrictModes no" >> /etc/ssh/sshd_config
 
 RUN apt-get install -y libxml2-dev
 
