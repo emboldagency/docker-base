@@ -249,65 +249,83 @@ function gad() {
 
 function fixperms() {
   # https://askubuntu.com/questions/574870/wordpress-cant-upload-files
-  WP_OWNER=embold # <-- wordpress owner
-  WP_GROUP=embold # <-- wordpress group
+  SITE_OWNER=embold # <-- wordpress owner
+  SITE_GROUP=embold # <-- wordpress group
   WS_GROUP=embold # <-- webserver group
 
   if [ "$1" = "" ]; then
-    WP_ROOT=~/code/${HOSTNAME} # <-- wordpress root directory
+    SITE_ROOT=~/code/${HOSTNAME} # <-- wordpress root directory
   else
-    WP_ROOT=$1 # <-- wordpress root directory
+    SITE_ROOT=$1 # <-- wordpress root directory
   fi
 
-  echo "Perms fix for ${WP_ROOT}"
+  echo "Perms fix for ${SITE_ROOT}"
 
   # reset to safe defaults
   echo "Fixing global owner..."
-  sudo find ${WP_ROOT} -exec chown ${WP_OWNER}:${WP_GROUP} {} \;
+  sudo find ${SITE_ROOT} -exec chown ${SITE_OWNER}:${SITE_GROUP} {} \;
   echo "Fixing global directory permissions..."
-  find ${WP_ROOT} -type d -exec chmod 755 {} \;
+  find ${SITE_ROOT} -type d -exec chmod 755 {} \;
   echo "Fixing global file permissions..."
-  find ${WP_ROOT} -type f -exec chmod 644 {} \;
+  find ${SITE_ROOT} -type f -exec chmod 644 {} \;
 
   # allow wordpress to manage wp-config.php (but prevent world access)
-  if [[ -a ${WP_ROOT}/wp-config.php ]]; then
+  if [[ -a ${SITE_ROOT}/wp-config.php ]]; then
     echo "Fixing wp-config owner group..."
-    sudo chgrp ${WS_GROUP} ${WP_ROOT}/wp-config.php
+    sudo chgrp ${WS_GROUP} ${SITE_ROOT}/wp-config.php
     echo "Fixing wp-config permissions..."
-    chmod 660 ${WP_ROOT}/wp-config.php
-  fi
-  if [[ -a ${WP_ROOT}/.env ]]; then
-    echo "Fixing .env owner group..."
-    sudo chgrp ${WS_GROUP} ${WP_ROOT}/.env
-    echo "Fixing .env permissions..."
-    chmod 660 ${WP_ROOT}/.env
+    chmod 660 ${SITE_ROOT}/wp-config.php
   fi
 
-  # allow wordpress to manage wp-content
-  if [[ -d ${WP_ROOT}/wp-content ]]; then
-    echo "Fixing wp-content owner group..."
-    find ${WP_ROOT}/wp-content -exec chgrp ${WS_GROUP} {} \;
-    echo "Fixing wp-content directory permissions..."
-    find ${WP_ROOT}/wp-content -type d -exec chmod 775 {} \;
-    echo "Fixing wp-content file permissions..."
-    find ${WP_ROOT}/wp-content -type f -exec chmod 664 {} \;
+  if [[ -a ${SITE_ROOT}/.env ]]; then
+    echo "Fixing .env owner group..."
+    sudo chgrp ${WS_GROUP} ${SITE_ROOT}/.env
+    echo "Fixing .env permissions..."
+    chmod 660 ${SITE_ROOT}/.env
   fi
-  if [[ -d ${WP_ROOT}/web/app ]]; then
+
+  if [[ -d ${SITE_ROOT}/wp-content ]]; then
+    echo "Fixing wp-content owner group..."
+    find ${SITE_ROOT}/wp-content -exec chgrp ${WS_GROUP} {} \;
+    echo "Fixing wp-content directory permissions..."
+    find ${SITE_ROOT}/wp-content -type d -exec chmod 775 {} \;
+    echo "Fixing wp-content file permissions..."
+    find ${SITE_ROOT}/wp-content -type f -exec chmod 664 {} \;
+  fi
+
+  if [[ -d ${SITE_ROOT}/web/app ]]; then
     echo "Fixing web/app owner group..."
-    find ${WP_ROOT}/web/app -exec chgrp ${WS_GROUP} {} \;
+    find ${SITE_ROOT}/web/app -exec chgrp ${WS_GROUP} {} \;
     echo "Fixing web/app directory permissions..."
-    find ${WP_ROOT}/web/app -type d -exec chmod 775 {} \;
+    find ${SITE_ROOT}/web/app -type d -exec chmod 775 {} \;
     echo "Fixing web/app file permissions..."
-    find ${WP_ROOT}/web/app -type f -exec chmod 664 {} \;
+    find ${SITE_ROOT}/web/app -type f -exec chmod 664 {} \;
   fi
 
   # laravel storage directory
-  if [[ -d ${WP_ROOT}/storage ]]; then
-    echo "Fixing storage directory permissions..."
-    sudo chmod -R ug+w ${WP_ROOT}/storage
+  if [[ -d ${SITE_ROOT}/storage ]]; then
+    echo "Fixing Laravel storage permissions..."
+    sudo chmod -R ug+w ${SITE_ROOT}/storage
+  fi
+
+  if [[ -d ${SITE_ROOT}/node_modules ]]; then
+    echo "Fixing node_modules permissions..."
+    sudo chmod -R 755 ${SITE_ROOT}/node_modules
+  fi
+
+  if [[ -d ${SITE_ROOT}/vendor ]]; then
+    echo "Fixing vendor permissions..."
+    sudo chmod -R 755 ${SITE_ROOT}/vendor
   fi
 
   echo "Done!"
+}
+
+function vendperms() {
+  if [[ -d ${SITE_ROOT}/vendor ]]; then
+    echo "Fixing vendor permissions..."
+    sudo chmod -R 755 ${SITE_ROOT}/vendor
+  fi
 }
 
 # reusable confirm function
