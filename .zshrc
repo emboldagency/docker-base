@@ -144,13 +144,6 @@ function merge() {
         git checkout master && git merge $branch
 }
 
-function backend() {
-        folder=${PWD##*/}
-
-        cd ~/browsersync/ && NODE_ENV=development site=$folder node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js
-}
-
-alias browsersync='backend'
 alias bs="backend"
 
 function deploy() {
