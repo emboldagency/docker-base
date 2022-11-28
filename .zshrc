@@ -391,3 +391,12 @@ export PULSAR_DIRECTORY="/home/embold/pulsar"
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export PATH="$PATH:/snap/bin"
 
+export PATH=/home/embold/.fnm:$PATH
+eval "$(fnm env)"
+autoload -U add-zsh-hook
+
+node_after_cd() {
+        fnm use --install-if-missing --silent-if-unchanged
+}
+
+add-zsh-hook chpwd node_after_cd
