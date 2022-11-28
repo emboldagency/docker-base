@@ -396,7 +396,10 @@ eval "$(fnm env)"
 autoload -U add-zsh-hook
 
 node_after_cd() {
-        fnm use --install-if-missing --silent-if-unchanged
+        if [ -e .node-version ]
+        then
+                fnm use --install-if-missing --silent-if-unchanged
+        fi
 }
 
 add-zsh-hook chpwd node_after_cd
