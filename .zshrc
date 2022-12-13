@@ -403,3 +403,6 @@ node_after_cd() {
 }
 
 add-zsh-hook chpwd node_after_cd
+
+# Automatic update oh my zsh without confirmation prompt
+zstyle ':omz:update' mode auto
