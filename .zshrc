@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-  export ZSH=/home/embold/.oh-my-zsh
+export ZSH=/home/embold/.oh-my-zsh
 
 DEFAULT_USER='embold'
 
@@ -374,6 +374,10 @@ function maint() {
       ;;
     esac
   done
+}
+
+function wpwatch() {
+    npm run watch --prefix wp-content/themes/$APP
 }
 
 alias flushdns='sudo systemd-resolve --flush-caches'
