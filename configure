@@ -93,7 +93,7 @@ fi
 
 sudo rm /etc/sysctl.d/watches.conf
 sudo touch /etc/sysctl.d/watches.conf
-sudo echo 'fs.inotify.max_user_watches = 10485760' >> /etc/sysctl.d/watches.conf
+sudo bash -c 'echo "fs.inotify.max_user_watches = 10485760" > /etc/sysctl.d/watches.conf'
 
 sh /install-composer.sh
 
