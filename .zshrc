@@ -6,7 +6,7 @@ export ZSH=/home/embold/.oh-my-zsh
 
 DEFAULT_USER='embold'
 
-export APP="${HOSTNAME}"
+export APP="$CODER_WORKSPACE_NAME"
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
