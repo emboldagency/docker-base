@@ -86,6 +86,8 @@ then
   echo 'PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"' >> /home/embold/.pulsar/config
 fi
 
+ssh-keyscan github.com | sort -u - ~/.ssh/known_hosts | tee ~/.ssh/known_hosts
+
 if [ ! -d "/home/embold/browsersync" ]
 then
   git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
