@@ -93,7 +93,7 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources
 RUN apt-get update && apt-get install -y yarn 
 # IF THE ABOVE LINE ERRORS RUN "sudo hwclock --hctosys" in WSL
 RUN npm install -g n
-RUN n 14.15.2
+RUN n 18.14.2
 
 # WP CLI
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
