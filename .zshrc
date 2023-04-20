@@ -382,6 +382,9 @@ function wpwatch() {
 
 alias flushdns='sudo systemd-resolve --flush-caches'
 
+alias duster='./vendor/bin/duster'
+alias wptheme='cd ~/code/$APP/wp-content/themes/$APP'
+
 alias zd='z -c'
 
 alias g='guard'
