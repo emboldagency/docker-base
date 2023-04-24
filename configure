@@ -39,11 +39,13 @@ sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/max_fil
 
 sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.mode=debug'
 
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.start_with_request=yes'
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.start_with_request=no'
 
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_enable=1'
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_enable=0'
 
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_autostart=1'
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_autostart=0'
+
+sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.default_enable=0'
 
 sudo sed -i 's/var\/lib\/mysql/home\/embold\/mysql-data/g' /etc/mysql/mariadb.conf.d/50-server.cnf
 
