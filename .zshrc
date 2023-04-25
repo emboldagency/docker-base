@@ -180,10 +180,10 @@ function yolo() {
 }
 
 function connect() {
-        if [ "$1" = "staging" ]; then
-                ssh ${PWD##*/}-staging
+	if [ "$1" = "" ]; then
+	        pulsar task $APP production ssh:connect
         else
-                ssh ${PWD##*/}
+                pulsar task $APP $1 ssh:connect
         fi
 }
 
