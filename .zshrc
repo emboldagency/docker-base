@@ -262,13 +262,12 @@ function fixperms() {
   sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/node_modules -o -path ${SITE_ROOT}/vendor \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 755
 
   echo "Fixing global file permissions..."
-  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/node_modules -o -path ${SITE_ROOT}/vendor \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 644
+  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/vendor -o -path "*/node_modules/*" -o -path "*/.husky/*" \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 644
 
 
   # allow pre-commit files to be executable - no matter what directory they're found in
-  find ${SITE_ROOT} -type f ! -wholename '*/.husky/*' -name 'pre-commit' -exec chmod 644 {} \;
-  find ${SITE_ROOT} -type f -wholename '*/.husky/*' -name 'pre-commit' -exec chmod +x {} \;
-
+  find ${SITE_ROOT} -type f -name 'pre-commit' -exec chmod 664 {} \;
+  find ${SITE_ROOT} -type f -name 'pre-commit' -exec chmod +x {} \;
 
   # allow wordpress to manage wp-config.php (but prevent world access)
   if [[ -a ${SITE_ROOT}/wp-config.php ]]; then
@@ -291,7 +290,7 @@ function fixperms() {
     echo "Fixing wp-content directory permissions..."
     sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 775
     echo "Fixing wp-content file permissions..."
-    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 664
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/node_modules/*" -o -path "*/.husky/*" \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 664
   fi
 
   if [[ -d ${SITE_ROOT}/web/app ]]; then
