@@ -241,6 +241,103 @@ function gad() {
 }
 
 function fixperms() {
+  local start_time=${SECONDS}
+
+  SITE_OWNER=embold
+  SITE_GROUP=embold
+  WS_GROUP=embold
+
+  if [ "$1" = "" ]; then
+    SITE_ROOT=~/code/${HOSTNAME} # <-- wordpress root directory
+  else
+    SITE_ROOT=$1 # <-- wordpress root directory
+  fi
+
+  echo "Perms fix for ${SITE_ROOT}"
+
+  echo "Fixing global owner..."
+  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/node_modules -o -path ${SITE_ROOT}/vendor \) -prune -o -print0 | xargs -0 -P $(nproc) chown ${SITE_OWNER}:${SITE_GROUP}
+
+  echo "Fixing global directory permissions..."
+  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/node_modules -o -path ${SITE_ROOT}/vendor \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 755
+
+  echo "Fixing global file permissions..."
+  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/node_modules -o -path ${SITE_ROOT}/vendor \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 644
+
+
+  # allow pre-commit files to be executable - no matter what directory they're found in
+  find ${SITE_ROOT} -type f ! -wholename '*/.husky/*' -name 'pre-commit' -exec chmod 644 {} \;
+  find ${SITE_ROOT} -type f -wholename '*/.husky/*' -name 'pre-commit' -exec chmod +x {} \;
+
+
+  # allow wordpress to manage wp-config.php (but prevent world access)
+  if [[ -a ${SITE_ROOT}/wp-config.php ]]; then
+    echo "Fixing wp-config owner group..."
+    sudo chgrp ${WS_GROUP} ${SITE_ROOT}/wp-config.php
+    echo "Fixing wp-config permissions..."
+    chmod 660 ${SITE_ROOT}/wp-config.php
+  fi
+
+  if [[ -a ${SITE_ROOT}/.env ]]; then
+    echo "Fixing .env owner group..."
+    sudo chgrp ${WS_GROUP} ${SITE_ROOT}/.env
+    echo "Fixing .env permissions..."
+    chmod 660 ${SITE_ROOT}/.env
+  fi
+
+  if [[ -d ${SITE_ROOT}/wp-content ]]; then
+    echo "Fixing wp-content owner group..."
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -not -group ${WS_GROUP} -print0 | xargs -0 -P $(nproc) -n 1 -I {} sudo chgrp ${WS_GROUP} {}
+    echo "Fixing wp-content directory permissions..."
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 775
+    echo "Fixing wp-content file permissions..."
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 664
+  fi
+
+  if [[ -d ${SITE_ROOT}/web/app ]]; then
+    echo "Fixing web/app owner group..."
+    find ${SITE_ROOT}/web/app -not \( -group ${WS_GROUP} -user ${SITE_OWNER} \) -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chown ${SITE_OWNER}:${WS_GROUP} {}
+    echo "Fixing web/app directory permissions..."
+    find ${SITE_ROOT}/web/app -not \( -group ${WS_GROUP} -perm 2775 \) -type d -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chmod 2775 {}
+    echo "Fixing web/app file permissions..."
+    find ${SITE_ROOT}/web/app -not \( -group ${WS_GROUP} -perm 664 \) -type f -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chmod 664 {}
+  fi
+
+  # laravel storage directory
+  if [[ -d ${SITE_ROOT}/storage ]]; then
+    echo "Fixing Laravel storage permissions..."
+    find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -user ${SITE_OWNER} \) -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chown ${SITE_OWNER}:${WS_GROUP} {}
+    find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -perm 2775 \) -type d -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chmod 2775 {}
+    find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -perm 664 \) -type f -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chmod 664 {}
+  fi
+
+  if [[ -d ${SITE_ROOT}/node_modules ]]; then
+    echo "Fixing node_modules permissions..."
+    find ${SITE_ROOT}/node_modules -not \( -group ${WS_GROUP} -perm 755 \) -type d -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chmod 755 {}
+  fi
+
+  if [[ -d ${SITE_ROOT}/vendor ]]; then
+    echo "Fixing vendor permissions..."
+    find ${SITE_ROOT}/vendor -not \( -group ${WS_GROUP} -perm 755 \) -type d -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chmod 755 {}
+  fi
+
+  local end_time=${SECONDS}
+  local elapsed_time=$(( end_time - start_time ))
+
+  print -P "%F{green}Permissions fixed in ${elapsed_time} seconds.%f"
+}
+
+function legacyfixperms() {
+  local start_time=${SECONDS}
+  
   # https://askubuntu.com/questions/574870/wordpress-cant-upload-files
   SITE_OWNER=embold # <-- wordpress owner
   SITE_GROUP=embold # <-- wordpress group
@@ -311,7 +408,10 @@ function fixperms() {
     sudo chmod -R 755 ${SITE_ROOT}/vendor
   fi
 
-  echo "Done!"
+  local end_time=${SECONDS}
+  local elapsed_time=$(( end_time - start_time ))
+
+  print -P "%F{green}Permissions fixed in ${elapsed_time} seconds.%f"
 }
 
 function vendperms() {
