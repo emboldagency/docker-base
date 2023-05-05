@@ -171,6 +171,15 @@ function deploy() {
         fi
 }
 
+function runcloudlink () {
+        if [ "$1" = "" ]
+        then
+                pulsar task $APP production runcloud:link
+        else
+                pulsar task $1 production runcloud:link
+        fi
+}
+
 function yolo() {
         if [ "$1" = "" ]; then
                 yes | deploy
