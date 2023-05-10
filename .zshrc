@@ -319,7 +319,11 @@ function fixperms() {
     echo "Fixing Laravel storage permissions..."
     find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -user ${SITE_OWNER} \) -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chown ${SITE_OWNER}:${WS_GROUP} {}
+    find ${SITE_ROOT}/wp-content/cache/acorn/framework -not \( -group ${WS_GROUP} -user ${SITE_OWNER} \) -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chown ${SITE_OWNER}:${WS_GROUP} {}
     find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -perm 2775 \) -type d -print0 \
+      | xargs -0 -P $(nproc) -I {} sudo chmod 2775 {}
+    find ${SITE_ROOT}/wp-content/cache/acorn/framework -not \( -group ${WS_GROUP} -perm 2775 \) -type d -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chmod 2775 {}
     find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -perm 664 \) -type f -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chmod 664 {}
