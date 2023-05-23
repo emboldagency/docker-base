@@ -300,7 +300,7 @@ function fixperms() {
     echo "Fixing wp-content directory permissions..."
     sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 775
     echo "Fixing wp-content file permissions..."
-    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/node_modules/*" -o -path "*/.husky/*" \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 664
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/node_modules/*" -o -path "*/.husky/*" -o -path "*/vendor/*" \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 664
   fi
 
   if [[ -d ${SITE_ROOT}/web/app ]]; then
