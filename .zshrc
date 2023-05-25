@@ -257,21 +257,21 @@ function fixperms() {
   WS_GROUP=embold
 
   if [ "$1" = "" ]; then
-    SITE_ROOT=~/code/${HOSTNAME} # <-- wordpress root directory
+    SITE_ROOT=~/code/${HOSTNAME} # <-- site root directory
   else
-    SITE_ROOT=$1 # <-- wordpress root directory
+    SITE_ROOT=$1 # <-- site root directory
   fi
 
   echo "Perms fix for ${SITE_ROOT}"
 
   echo "Fixing global owner..."
-  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/node_modules -o -path ${SITE_ROOT}/vendor \) -prune -o -print0 | xargs -0 -P $(nproc) chown ${SITE_OWNER}:${SITE_GROUP}
+  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/storage/*" -o -path ${SITE_ROOT}/node_modules -o -path ${SITE_ROOT}/vendor \) -prune -o -print0 | xargs -0 -P $(nproc) chown ${SITE_OWNER}:${SITE_GROUP}
 
   echo "Fixing global directory permissions..."
-  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path ${SITE_ROOT}/node_modules -o -path "*/vendor/*" \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 755
+  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/storage/*" -o -path ${SITE_ROOT}/node_modules -o -path "*/vendor/*" \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 755
 
   echo "Fixing global file permissions..."
-  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/vendor/*" -o -path "*/node_modules/*" -o -path "*/.husky/*" \) -prune -o -type f -exec chmod 644 {} \+
+  sudo find ${SITE_ROOT} \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/storage/*" -o -path "*/vendor/*" -o -path "*/node_modules/*" -o -path "*/.husky/*" \) -prune -o -type f -exec chmod 644 {} \+
 
   # allow pre-commit files to be executable - no matter what directory they're found in
   echo "Fixing linter files..."
@@ -308,37 +308,41 @@ function fixperms() {
     find ${SITE_ROOT}/web/app -not \( -group ${WS_GROUP} -user ${SITE_OWNER} \) -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chown ${SITE_OWNER}:${WS_GROUP} {}
     echo "Fixing web/app directory permissions..."
-    find ${SITE_ROOT}/web/app -not \( -group ${WS_GROUP} -perm 2775 \) -type d -print0 \
+    find ${SITE_ROOT}/web/app -not \( -perm 2775 \) -type d -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chmod 2775 {}
     echo "Fixing web/app file permissions..."
-    find ${SITE_ROOT}/web/app -not \( -group ${WS_GROUP} -perm 664 \) -type f -print0 \
+    find ${SITE_ROOT}/web/app -not \( -perm 664 \) -type f -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chmod 664 {}
   fi
-
-  # laravel storage directory
+  
   if [[ -d ${SITE_ROOT}/storage ]]; then
-    echo "Fixing Laravel storage permissions..."
+    echo "Fixing Laravel storage ownership..."
     find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -user ${SITE_OWNER} \) -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chown ${SITE_OWNER}:${WS_GROUP} {}
+    echo "Fixing Laravel directory permissions..."
+    find ${SITE_ROOT}/storage -not \( -perm 2775 \) -type d -print0 \
+      | xargs -0 -P $(nproc) -I {} chmod 2775 {}
+    echo "Fixing Laravel file permissions..."
+    find ${SITE_ROOT}/storage -not \( -perm 664 \) -type f -exec chmod 664 {} +
+  fi
+
+  if [[ -d ${SITE_ROOT}/wp-content/cache/acorn ]]; then
+    echo "Fixing Acorn storage permissions..."
     find ${SITE_ROOT}/wp-content/cache/acorn/framework -not \( -group ${WS_GROUP} -user ${SITE_OWNER} \) -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chown ${SITE_OWNER}:${WS_GROUP} {}
-    find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -perm 2775 \) -type d -print0 \
-      | xargs -0 -P $(nproc) -I {} sudo chmod 2775 {}
     find ${SITE_ROOT}/wp-content/cache/acorn/framework -not \( -group ${WS_GROUP} -perm 2775 \) -type d -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chmod 2775 {}
-    find ${SITE_ROOT}/storage -not \( -group ${WS_GROUP} -perm 664 \) -type f -print0 \
-      | xargs -0 -P $(nproc) -I {} sudo chmod 664 {}
   fi
 
   if [[ -d ${SITE_ROOT}/node_modules ]]; then
-    echo "Fixing node_modules permissions..."
-    find ${SITE_ROOT}/node_modules -not \( -group ${WS_GROUP} -perm 755 \) -type d -print0 \
+    echo "Fixing node_modules directory permissions..."
+    find ${SITE_ROOT}/node_modules -not \( -perm 755 \) -type d -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chmod 755 {}
   fi
 
   if [[ -d ${SITE_ROOT}/vendor ]]; then
-    echo "Fixing vendor permissions..."
-    find ${SITE_ROOT}/vendor -not \( -group ${WS_GROUP} -perm 755 \) -type d -print0 \
+    echo "Fixing vendor directory permissions..."
+    find ${SITE_ROOT}/vendor -not \( -perm 755 \) -type d -print0 \
       | xargs -0 -P $(nproc) -I {} sudo chmod 755 {}
   fi
 
