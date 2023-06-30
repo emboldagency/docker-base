@@ -296,11 +296,11 @@ function fixperms() {
 
   if [[ -d ${SITE_ROOT}/wp-content ]]; then
     echo "Fixing wp-content owner group..."
-    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -not -group ${WS_GROUP} -print0 | xargs -0 -P $(nproc) -n 1 -I {} sudo chgrp ${WS_GROUP} {}
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/cache \) -prune -o -not -group ${WS_GROUP} -print0 | xargs -0 -P $(nproc) -n 1 -I {} sudo chgrp ${WS_GROUP} {}
     echo "Fixing wp-content directory permissions..."
-    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 775
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/cache \) -prune -o -type d -print0 | xargs -0 -P $(nproc) chmod 775
     echo "Fixing wp-content file permissions..."
-    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/uploads -o -path ${SITE_ROOT}/wp-content/cache -o -path "*/node_modules/*" -o -path "*/.husky/*" -o -path "*/vendor/*" \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 664
+    sudo find ${SITE_ROOT}/wp-content \( -path ${SITE_ROOT}/wp-content/cache -o -path "*/node_modules/*" -o -path "*/.husky/*" -o -path "*/vendor/*" \) -prune -o -type f -print0 | xargs -0 -P $(nproc) chmod 664
   fi
 
   if [[ -d ${SITE_ROOT}/web/app ]]; then
