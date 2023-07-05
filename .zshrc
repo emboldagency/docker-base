@@ -189,11 +189,15 @@ function yolo() {
 }
 
 function connect() {
-	if [ "$1" = "" ]; then
-	        pulsar task $APP production ssh:connect
+    if [ "$1" != "" ] && [ "$2" != "" ]; then
+        pulsar task $1 $2 ssh:connect
+    else
+        if [ "$1" = "" ]; then
+            pulsar task $APP production ssh:connect
         else
-                pulsar task $APP $1 ssh:connect
+            pulsar task $APP $1 ssh:connect
         fi
+    fi
 }
 
 function acpd() {
