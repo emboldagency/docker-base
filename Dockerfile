@@ -7,6 +7,7 @@ RUN apt-get upgrade -y
 
 RUN apt-get install -y software-properties-common
 RUN add-apt-repository ppa:ondrej/php
+RUN add-apt-repository -y ppa:git-core/ppa
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
 		zsh \
