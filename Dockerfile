@@ -1,153 +1,101 @@
-FROM ubuntu:focal
+# Use ubuntu as the base image
+FROM ubuntu:22.04
 
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+# Use ARG for build-time variables
+ARG LANG=C.UTF-8 \
+    TZ=UTC \
+    DATE_TIMEZONE=UTC \
+    NODE_VERSION=20.9.0
 
-RUN apt-get update --fix-missing
-RUN apt-get upgrade -y
+# Set up timezone and locale
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
 
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository ppa:ondrej/php
-RUN add-apt-repository -y ppa:git-core/ppa
-
-RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
-		zsh \
-    git \
-    bash \
+# Install packages
+RUN apt-get update && \
+    apt-get install software-properties-common gpg-agent -y --no-install-recommends && \
+    add-apt-repository -y ppa:git-core/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    apt-transport-https \
+    autoconf \
+    # bash \
+    bison \
+    build-essential \
+    ca-certificates \
+    cron \
     curl \
+    git \
+    gnupg \
     htop \
+    iputils-ping \
+    jq \
+    less \
+    libbz2-dev \
+    libffi-dev \
+    libfontconfig1 \
+    libgdbm-dev \
+    libgtk-3-0 \
+    libncurses5-dev \
+    libpng-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libxi6 \
+    libxml2-dev \
+    libxrender1 \
+    libxslt-dev \
+    libxtst6 \
+    libyaml-dev \
+    locales \
+    lsb-release \
     man \
-    vim \
+    nano \
+    rsync \
+    openssh-server \
     ssh \
     sudo \
-    lsb-release \
-    ca-certificates \
-    locales \
-    gnupg \
-		zip \
-		unzip \
-		whois \
-		nano \
-		cron \
-    # Packages required for multi-editor support
-    libxtst6 \
-    libxrender1 \
-    libfontconfig1 \
-    libxi6 \
-    libgtk-3-0 \
-		libssl-dev \
-		libreadline-dev \
-		zlib1g-dev \
-		autoconf \
-		bison \
-		build-essential \
-		libyaml-dev \
-		libreadline-dev \
-		libncurses5-dev \
-		libffi-dev \
-		libgdbm-dev \
-		libsqlite3-dev
-		
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    systemd \
-    openssh-server
-		
-RUN service ssh start
-
-RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
-  echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
-  echo "X11UseLocalhost no" >> /etc/ssh/sshd_config && \
-  echo "StrictModes no" >> /etc/ssh/sshd_config
-
-RUN apt-get install -y libxml2-dev
+    # systemd \
+    unzip \
+    vim \
+    whois \
+    xclip \
+    xsel \
+    zip \
+    zlib1g-dev \
+    zsh \
+    && rm -rf /var/lib/apt/lists/* 
 
 RUN chsh -s $(which zsh)
 
-# Install the desired Node version into `/usr/local/`
-ENV NODE_VERSION=18.14.2
+# Install node and npm
 RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | \
     tar xzfv - \
-    --exclude CHANGELOG.md \
-    --exclude LICENSE \
-    --exclude README.md \
+    --exclude=CHANGELOG.md \
+    --exclude=LICENSE \
+    --exclude=README.md \
     --strip-components 1 -C /usr/local/
 
-RUN apt-get install -y \
-		jq \
-    libpng-dev
+# Install yarn and n
+RUN npm install -g yarn n && \
+    n $NODE_VERSION
 
-# Set up Ruby
-RUN apt-get install -y \
-		ruby \
-		ruby-dev \
-		rubygems \
-		ruby-colorize
-RUN gem install bundler colorls pulsar
+# Copy configuration files
+COPY conf/watches.conf /etc/systctl.d/watches.conf
+COPY conf/.pulsar /coder/.pulsar
 
-RUN apt-get install -y \
-		xclip \
-    xsel
+# # Download intellij-idea-ultimate
+# RUN mkdir -p /opt/idea && \
+#     curl -L "https://download.jetbrains.com/product?code=IU&latest&distribution=linux" | \
+#     tar -C /opt/idea --strip-components 1 -xzvf - && \
+#     ln -s /opt/idea/bin/idea.sh /usr/bin/intellij-idea-ultimate
 
-# Install the yarn package manager
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -y yarn 
-# IF THE ABOVE LINE ERRORS RUN "sudo hwclock --hctosys" in WSL
-RUN npm install -g n
-RUN n 18.14.2
-
-# WP CLI
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-RUN chmod +x wp-cli.phar
-RUN mv wp-cli.phar /usr/local/bin/wp
-
-RUN apt-get install apache2 -y
-RUN apt-get install mariadb-common mariadb-server mariadb-client -y
-
-RUN a2enmod rewrite
-RUN a2enmod headers
-
-RUN chown -R www-data:www-data /var/www/html
-
-RUN rm /var/www/html/index.html
-
-COPY mysql.sh /mysql.sh
-RUN chmod +x /mysql.sh
-
-COPY install-composer.sh /install-composer.sh
-RUN chmod +x /install-composer.sh
-
-COPY .zshrc /.zshrc-initial/.zshrc
-
-ENV DATE_TIMEZONE UTC
-
-COPY ["configure", "/coder/configure"]
-
-VOLUME /var/www/html
-VOLUME /var/log/httpd
-VOLUME /var/run/mysqld
-VOLUME /var/lib/mysql
-VOLUME /var/log/mysql
-VOLUME /etc/apache2
-
-RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
-    libxtst6 \
-    libxrender1 \
-    libfontconfig1 \
-    libxi6 \
-    libgtk-3-0
-
-RUN mkdir -p /opt/idea
-#RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/phpstorm --strip-components 1 -xzvf -
-#RUN curl -L "https://download.jetbrains.com/product?code=RM&latest&distribution=linux" | tar -C /opt/rubymine --strip-components 1 -xzvf -
-RUN curl -L "https://download.jetbrains.com/product?code=IU&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
-
-#RUN ln -s /opt/phpstorm/bin/phpstorm.sh /usr/bin/phpstorm
-#RUN ln -s /opt/rubymine/bin/rubymine.sh /usr/bin/rubymine
-RUN ln -s /opt/idea/bin/idea.sh /usr/bin/intellij-idea-ultimate
-
+# Create a non-root user and add it to the necessary groups
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
-  echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
-RUN adduser embold www-data
-RUN adduser www-data embold
+    echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+
+COPY configure /coder/configure
+
 USER embold
+
+CMD ["/bin/bash"]

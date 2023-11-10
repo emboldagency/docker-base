@@ -1,5 +1,68 @@
 #!/bin/bash
 
+if [ -d "/home/embold/.ssh" ]
+then
+  ssh-keygen -R github.com
+  # Save GitHub's current keys from the API
+  curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >> ~/.ssh/known_hosts
+else
+  mkdir -p /home/embold/.ssh
+  touch /home/embold/.ssh/known_hosts
+  # Save GitHub's current keys from the API
+  curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >> ~/.ssh/known_hosts
+  ssh-keyscan -t rsa embold.net >> /home/embold/.ssh/known_hosts
+
+  mkdir -p /home/embold/.config/coder-api
+  curl --request GET \
+    --url "${CODER_AGENT_URL}api/v2/workspaceagents/me/gitsshkey" \
+    --header "Coder-Session-Token: $CODER_AGENT_TOKEN" \
+    -o /home/embold/.config/coder-api/gitsshkey.json && \
+  jq -r '.public_key' /home/embold/.config/coder-api/gitsshkey.json > \
+      /home/embold/.ssh/coder.pub && \
+  jq -r '.private_key' /home/embold/.config/coder-api/gitsshkey.json > \
+      /home/embold/.ssh/coder
+
+  sudo chmod 0700 /home/embold/.ssh
+  sudo chmod 600 /home/embold/.ssh/*
+  sudo chmod 600 /home/embold/.config/coder-api/gitsshkey.json
+fi
+
+eval "$(ssh-agent -s)"
+ssh-add /home/embold/.ssh/coder
+
+if [ ! -d "/home/embold/pulsar" ] 
+then
+  git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
+  cd /home/embold/pulsar #TODO: remove later
+  git switch coderv2 #TODO: remove later
+  #TODO: switch the repo back in the conf file
+  rsync -a --ignore-existing /coder/.pulsar /home/embold
+fi
+
+if [ ! -d "/.zshrc-initial" ]
+then
+  sudo mkdir /.zshrc-initial
+  sudo chown embold:embold /.zshrc-initial
+  git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
+else
+  cd /.zshrc-initial
+  git pull
+fi
+
+# Get dotfiles repo
+if [ ! -f /home/embold/.config/embold-api/dotfiles.json ]; then
+  mkdir -p /home/embold/.config/embold-api
+  curl -LGo /home/embold/.config/embold-api/dotfiles.json \
+    "https://embold.net/api/dotfiles/" \
+    -d user=$CODER_USERNAME
+fi
+
+DOTFILES_URI=$(jq -re '.repo' '/home/embold/.config/embold-api/dotfiles.json')
+if [ -n "$DOTFILES_URI" ]; then
+  echo "Installing dotfiles from $DOTFILES_URI"
+  coder dotfiles -y "$DOTFILES_URI"
+fi
+
 if ! command -v lazygit &>/dev/null; then
     LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
     curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
@@ -8,106 +71,15 @@ if ! command -v lazygit &>/dev/null; then
     rm lazygit.tar.gz
 fi
 
-# if the mysql-data directory doesn't exist yet, make it and copy the default over
-# the reason we do this is because the /home/ is the only thing that persists 
-# when the environment shuts down, so we store our data in our home directory
-if [ ! -d "/home/embold/mysql-data" ] 
-then
-  mkdir /home/embold/mysql-data
-  sudo chown -R mysql:mysql /home/embold/mysql-data
-  sudo cp -R -p /var/lib/mysql/* /home/embold/mysql-data
-else
-  echo "MySQL directory already exists."
-fi
-
-sudo chown -R mysql:root /var/run/mysqld
-
-# find and replace this comment with the port number since it seemed 
-# the only safe thing to be sure was there
-sudo sed -i 's/#\ socket\ location/port=3306/g' /etc/mysql/mariadb.conf.d/50-client.cnf
-
-# find and replace the old data directories in the config files
-sudo sed -i 's/var\/run\/mysqld/home\/embold\/mysql-data/g' /etc/mysql/mariadb.conf.d/50-client.cnf
-
-sudo sed -i 's/run\/mysqld\/mysqld\.sock/home\/embold\/mysql-data\/mysqld\.sock/g' /etc/mysql/mariadb.conf.d/50-server.cnf
-
-sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/mysqli.default_socket\ =/mysqli.default_socket\ =\/home\/embold\/mysql-data\/mysqld\.sock/g" {} \;
-
-sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/max_execution_time\ =\ 30/max_execution_time\ =\ 3000/g" {} \;
-
-sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/max_input_time\ =\ 60/max_input_time\ =\ 3000/g" {} \;
-
-sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/memory_limit\ =\ 128M/memory_limit\ =\ 1128M/g" {} \;
-
-sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/post_max_size\ =\ 8M/post_max_size\ =\ 800M/g" {} \;
-
-sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/upload_max_filesize\ =\ 2M/upload_max_filesize\ =\ 2000M/g" {} \;
-
-sudo find /etc/php/. -type f -name "php.ini" -print -exec sudo sed -i "s/max_file_uploads\ =\ 20/max_file_uploads\ =\ 300/g" {} \;
-
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.mode=debug'
-
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.start_with_request=no'
-
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_enable=0'
-
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.remote_autostart=0'
-
-sudo find /etc/php/. -name 'xdebug.ini'|xargs sudo sed -i '$a\xdebug.default_enable=0'
-
-sudo sed -i 's/var\/lib\/mysql/home\/embold\/mysql-data/g' /etc/mysql/mariadb.conf.d/50-server.cnf
-
-sudo sed -i 's/AllowOverride\ None/AllowOverride\ All/g' /etc/apache2/apache2.conf
-
-sudo sed -i 's/var\/www/home\/embold\/code/g' /etc/apache2/apache2.conf
-
-sudo sed -i 's/var\/www\/html/home\/embold\/code\/public/g' /etc/apache2/sites-available/000-default.conf
-
-sudo sed -i 's/var\/www\/html/home\/embold\/code\/public/g' /etc/apache2/sites-available/default-ssl.conf
-
-sudo sed -i 's/#\ Global\ configuration/ServerName\ local/g' /etc/apache2/apache2.conf
-
-sudo nohup /mysql.sh > /dev/null 2>&1 &
-
-if [ ! -d "/home/embold/initialized" ] 
-then
-  sudo sleep 10
-
-  sudo mysql -e "CREATE USER 'homestead'@'localhost' IDENTIFIED BY 'secret';"
-
-  sudo mysql -e "GRANT ALL PRIVILEGES ON * . * TO 'homestead'@'localhost';"
-
-  sudo mysql -e "CREATE USER 'embold'@'localhost' IDENTIFIED BY 'embold';"
-
-  sudo mysql -e "GRANT ALL PRIVILEGES ON * . * TO 'embold'@'localhost';"
-
-  sudo mysql -e "FLUSH PRIVILEGES;"
-
-  mkdir ~/initialized
-fi
-
-if [ ! -d "/home/embold/pulsar" ] 
-then
-  ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts 
-  ssh-keyscan -t rsa embold.net >> ~/.ssh/known_hosts
-
-  git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
-  mkdir /home/embold/.pulsar && touch /home/embold/.pulsar/config
-  echo 'PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"' >> /home/embold/.pulsar/config
-fi
-
-ssh-keyscan github.com | sort -u - ~/.ssh/known_hosts | tee ~/.ssh/known_hosts
-
 if [ ! -d "/home/embold/browsersync" ]
 then
   git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
 fi
 
-sudo rm /etc/sysctl.d/watches.conf
-sudo touch /etc/sysctl.d/watches.conf
-sudo bash -c 'echo "fs.inotify.max_user_watches = 10485760" > /etc/sysctl.d/watches.conf'
-
-sh /install-composer.sh
-
 curl https://getmic.ro | bash
 sudo mv micro /usr/bin
+
+# Who are we? ^_~
+embold=H4sIAAAAAAAAA52SMQ7DMAhFd5+CqWPv0itkyFDJErbk+h+/wcTGtM7Q/iUKmCf4QLRWNW0XT5YKV4k660cggJtFdmAAifgPIJCBJ0Q5vwQPA6YBtH6TpUXJZYIAlHkiZ6BN/Piw4BM4qAGdpMzO8x5G61TLvzvs32DNdTDy5GF/bsuZ/j1QY6F11hZjzAXQVy2B6uIBlGCzjs6RCx3MeeJUnfWjWpMuw+IhZQWRjb27iuiXmegSeGz5PvZb5AQLUcl7G2XjGNmfIEde3V7lWLfzZXgDYVxqC3sDAAA=
+base64 -d <<<"$embold" | gunzip
+echo
