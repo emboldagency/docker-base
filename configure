@@ -33,9 +33,6 @@ ssh-add /home/embold/.ssh/coder
 if [ ! -d "/home/embold/pulsar" ] 
 then
   git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
-  cd /home/embold/pulsar #TODO: remove later
-  git switch coderv2 #TODO: remove later
-  #TODO: switch the repo back in the conf file
   rsync -a --ignore-existing /coder/.pulsar /home/embold
 fi
 
