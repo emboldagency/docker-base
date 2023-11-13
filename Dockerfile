@@ -7,6 +7,8 @@ ARG LANG=C.UTF-8 \
     DATE_TIMEZONE=UTC \
     NODE_VERSION=20.9.0
 
+ENV CODER_VERSION=2
+
 # Set up timezone and locale
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone

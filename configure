@@ -1,63 +1,60 @@
 #!/bin/bash
 
-if [ -d "/home/embold/.ssh" ]
-then
-  ssh-keygen -R github.com
-  # Save GitHub's current keys from the API
-  curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >> ~/.ssh/known_hosts
+if [ -d "/home/embold/.ssh" ]; then
+    ssh-keygen -R github.com
+    # Save GitHub's current keys from the API
+    curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
 else
-  mkdir -p /home/embold/.ssh
-  touch /home/embold/.ssh/known_hosts
-  # Save GitHub's current keys from the API
-  curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >> ~/.ssh/known_hosts
-  ssh-keyscan -t rsa embold.net >> /home/embold/.ssh/known_hosts
+    mkdir -p /home/embold/.ssh
+    touch /home/embold/.ssh/known_hosts
+    # Save GitHub's current keys from the API
+    curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
+    ssh-keyscan -t rsa embold.net >>/home/embold/.ssh/known_hosts
 
-  mkdir -p /home/embold/.config/coder-api
-  curl --request GET \
-    --url "${CODER_AGENT_URL}api/v2/workspaceagents/me/gitsshkey" \
-    --header "Coder-Session-Token: $CODER_AGENT_TOKEN" \
-    -o /home/embold/.config/coder-api/gitsshkey.json && \
-  jq -r '.public_key' /home/embold/.config/coder-api/gitsshkey.json > \
-      /home/embold/.ssh/coder.pub && \
-  jq -r '.private_key' /home/embold/.config/coder-api/gitsshkey.json > \
-      /home/embold/.ssh/coder
+    mkdir -p /home/embold/.config/coder-api
+    curl --request GET \
+        --url "${CODER_AGENT_URL}api/v2/workspaceagents/me/gitsshkey" \
+        --header "Coder-Session-Token: $CODER_AGENT_TOKEN" \
+        -o /home/embold/.config/coder-api/gitsshkey.json &&
+        jq -r '.public_key' /home/embold/.config/coder-api/gitsshkey.json > \
+            /home/embold/.ssh/coder.pub &&
+        jq -r '.private_key' /home/embold/.config/coder-api/gitsshkey.json > \
+            /home/embold/.ssh/coder
 
-  sudo chmod 0700 /home/embold/.ssh
-  sudo chmod 600 /home/embold/.ssh/*
-  sudo chmod 600 /home/embold/.config/coder-api/gitsshkey.json
+    sudo chmod 0700 /home/embold/.ssh
+    sudo chmod 600 /home/embold/.ssh/*
+    sudo chmod 600 /home/embold/.config/coder-api/gitsshkey.json
 fi
 
 eval "$(ssh-agent -s)"
 ssh-add /home/embold/.ssh/coder
 
-if [ ! -d "/home/embold/pulsar" ] 
-then
-  git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
-  rsync -a --ignore-existing /coder/.pulsar /home/embold
+if [ ! -d "/home/embold/pulsar" ]; then
+    git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
+    rsync -a --ignore-existing /coder/.pulsar /home/embold
 fi
 
-if [ ! -d "/.zshrc-initial" ]
-then
-  sudo mkdir /.zshrc-initial
-  sudo chown embold:embold /.zshrc-initial
-  git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
+if [ ! -d "/.zshrc-initial" ]; then
+    sudo mkdir /.zshrc-initial
+    sudo chown embold:embold /.zshrc-initial
+    git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
 else
-  cd /.zshrc-initial
-  git pull
+    cd /.zshrc-initial
+    git pull
 fi
 
 # Get dotfiles repo
 if [ ! -f /home/embold/.config/embold-api/dotfiles.json ]; then
-  mkdir -p /home/embold/.config/embold-api
-  curl -LGo /home/embold/.config/embold-api/dotfiles.json \
-    "https://embold.net/api/dotfiles/" \
-    -d user=$CODER_USERNAME
+    mkdir -p /home/embold/.config/embold-api
+    curl -LGo /home/embold/.config/embold-api/dotfiles.json \
+        "https://embold.net/api/dotfiles/" \
+        -d user=$CODER_USERNAME
 fi
 
 DOTFILES_URI=$(jq -re '.repo' '/home/embold/.config/embold-api/dotfiles.json')
 if [ -n "$DOTFILES_URI" ]; then
-  echo "Installing dotfiles from $DOTFILES_URI"
-  coder dotfiles -y "$DOTFILES_URI"
+    echo "Installing dotfiles from $DOTFILES_URI"
+    coder dotfiles -y "$DOTFILES_URI"
 fi
 
 if ! command -v lazygit &>/dev/null; then
@@ -68,9 +65,8 @@ if ! command -v lazygit &>/dev/null; then
     rm lazygit.tar.gz
 fi
 
-if [ ! -d "/home/embold/browsersync" ]
-then
-  git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
+if [ ! -d "/home/embold/browsersync" ]; then
+    git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
 fi
 
 curl https://getmic.ro | bash
