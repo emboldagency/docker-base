@@ -71,16 +71,16 @@ RUN apt-get update && \
 RUN chsh -s $(which zsh)
 
 # Install node and npm
-RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | \
-    tar xzfv - \
-    --exclude=CHANGELOG.md \
-    --exclude=LICENSE \
-    --exclude=README.md \
-    --strip-components 1 -C /usr/local/
+# RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | \
+#     tar xzfv - \
+#     --exclude=CHANGELOG.md \
+#     --exclude=LICENSE \
+#     --exclude=README.md \
+#     --strip-components 1 -C /usr/local/
 
 # Install yarn and n
-RUN npm install -g yarn n && \
-    n $NODE_VERSION
+# RUN npm install -g yarn n && \
+#     n $NODE_VERSION
 
 # Copy configuration files
 COPY conf/watches.conf /etc/systctl.d/watches.conf
@@ -101,4 +101,10 @@ COPY configure /coder/configure
 
 USER embold
 
-CMD ["/bin/bash"]
+RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir '/home/embold/.fnm' --skip-shell && \
+    sudo chmod +x /home/fnm/fnm && \
+    fnm -v && \
+    eval "$(fnm env)" && \
+    fnm install ${NODE_VERSION} && \
+    fnm alias default ${NODE_VERSION} && \
+    npm install -g yarn n
