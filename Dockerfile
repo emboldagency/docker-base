@@ -102,7 +102,7 @@ COPY configure /coder/configure
 USER embold
 
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir '/home/embold/.fnm' --skip-shell && \
-    sudo chmod +x /home/fnm/fnm && \
+    sudo chmod +x /home/embold/fnm && \
     fnm -v && \
     eval "$(fnm env)" && \
     fnm install ${NODE_VERSION} && \
