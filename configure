@@ -1,9 +1,7 @@
 #!/bin/bash
 
 if [ ! -d "/home/embold/.ssh" ]; then
-
-    mkdir -p /home/embold/.ssh
-    touch /home/embold/.ssh/known_hosts
+    rsync -a --ignore-existing /coder/.ssh /home/embold
     # Save GitHub's current keys from the API
     curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
     ssh-keyscan -t rsa embold.net >>/home/embold/.ssh/known_hosts
