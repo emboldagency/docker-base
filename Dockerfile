@@ -85,6 +85,7 @@ RUN npm install -g yarn n && \
 # Copy configuration files
 COPY conf/watches.conf /etc/systctl.d/watches.conf
 COPY conf/.pulsar /coder/.pulsar
+COPY conf/.ssh /coder/.ssh
 
 # # Download intellij-idea-ultimate
 # RUN mkdir -p /opt/idea && \

@@ -1,10 +1,7 @@
 #!/bin/bash
 
-if [ -d "/home/embold/.ssh" ]; then
-    ssh-keygen -R github.com
-    # Save GitHub's current keys from the API
-    curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
-else
+if [ ! -d "/home/embold/.ssh" ]; then
+
     mkdir -p /home/embold/.ssh
     touch /home/embold/.ssh/known_hosts
     # Save GitHub's current keys from the API
@@ -26,8 +23,9 @@ else
     sudo chmod 600 /home/embold/.config/coder-api/gitsshkey.json
 fi
 
-eval "$(ssh-agent -s)"
-ssh-add /home/embold/.ssh/coder
+ssh-keygen -R github.com
+# Save GitHub's current keys from the API
+curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
 
 if [ ! -d "/home/embold/pulsar" ]; then
     git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
