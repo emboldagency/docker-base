@@ -101,9 +101,19 @@ COPY configure /coder/configure
 
 USER embold
 
-RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir '/home/embold/.fnm' --skip-shell && \
-    sudo chmod +x /home/embold/.fnm/fnm && \
-    eval "$(fnm env)" && \
-    fnm install ${NODE_VERSION} && \
-    fnm alias default ${NODE_VERSION} && \
+SHELL [ "bash", "-c" ]
+
+# Install fnm, node, npm, yarn, & n 
+RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc && \
+    curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/home/embold/.fnm" --skip-shell && \
+    sudo ln -s /home/embold/.fnm/fnm /usr/local/bin/ && \
+    sudo chmod +x /usr/local/bin/fnm && \
+    # smoke test for fnm
+    fnm -V && \
+    /bin/bash -c "source /home/embold/.bashrc && fnm install ${NODE_VERSION}" && \
+    /bin/bash -c "source /home/embold/.bashrc && fnm alias default ${NODE_VERSION}" && \
+    # add fnm for bash
+    /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/node" /usr/local/bin/node' && \
+    /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' && \
+    /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' && \
     npm install -g yarn n
