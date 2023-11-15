@@ -8,7 +8,9 @@ ARG LANG=C.UTF-8 \
     NODE_VERSION=20.9.0
 
 ENV CODER_VERSION=2 \
-    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"
+    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
+    GEM_HOME=/home/embold/.gems \
+    PATH="${PATH}:${GEM_HOME}/bin"
 
 # Set up timezone and locale
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
