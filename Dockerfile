@@ -17,20 +17,23 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone
 
 # Install packages
-RUN apt-get update && \
-    apt-get install software-properties-common gpg-agent -y --no-install-recommends && \
-    add-apt-repository -y ppa:git-core/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install software-properties-common gpg-agent curl -y --no-install-recommends \
+    && add-apt-repository -y ppa:git-core/ppa \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    # Install Packages
+    && apt-get update  \
+    && apt-get install -y --no-install-recommends \
     apt-transport-https \
     autoconf \
-    # bash \
     bison \
     build-essential \
     ca-certificates \
     cron \
-    curl \
     git \
+    gh \
     gnupg \
     htop \
     iputils-ping \
@@ -69,37 +72,36 @@ RUN apt-get update && \
     zip \
     zlib1g-dev \
     zsh \
-    && rm -rf /var/lib/apt/lists/* 
+    && rm -rf /var/lib/apt/lists/*
 
 RUN chsh -s $(which zsh)
 
 # Copy configuration files
 COPY conf/.ssh /coder/.ssh
+COPY configure /coder/configure
 
 # Create a non-root user and add it to the necessary groups
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
     echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
-COPY configure /coder/configure
-
-RUN curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem && \
-    chown -R embold:embold /coder/
+RUN curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
+    && chown -R embold:embold /coder/
 
 USER embold
 
 SHELL [ "bash", "-c" ]
 
 # Install fnm, node, npm, yarn, & n 
-RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc && \
-    curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/home/embold/.fnm" --skip-shell && \
-    sudo ln -s /home/embold/.fnm/fnm /usr/local/bin/ && \
-    sudo chmod +x /usr/local/bin/fnm && \
+RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
+    && curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/home/embold/.fnm" --skip-shell \
+    && sudo ln -s /home/embold/.fnm/fnm /usr/local/bin/ \
+    && sudo chmod +x /usr/local/bin/fnm \
     # smoke test for fnm
-    fnm -V && \
-    /bin/bash -c "source /home/embold/.bashrc && fnm install ${NODE_VERSION}" && \
-    /bin/bash -c "source /home/embold/.bashrc && fnm alias default ${NODE_VERSION}" && \
-    # add fnm for bash
-    /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/node" /usr/local/bin/node' && \
-    /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' && \
-    /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' && \
-    npm install -g yarn n
+    && fnm -V  \
+    && /bin/bash -c "source /home/embold/.bashrc && fnm install ${NODE_VERSION}" \
+    && /bin/bash -c "source /home/embold/.bashrc && fnm alias default ${NODE_VERSION}" \
+    # add fnm for shell
+    && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/node" /usr/local/bin/node' \
+    && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' \
+    && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
+    && npm install -g yarn n
