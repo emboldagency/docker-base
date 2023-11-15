@@ -25,17 +25,8 @@ ssh-keygen -R github.com
 # Save GitHub's current keys from the API
 curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
 
-# Install forked pulsar gem to resolve deprecation warnings
-sudo mkdir /coder/pulsar &&
-    sudo chown embold:embold /coder/pulsar &&
-    git clone git@github.com:emboldagency/nebulab-pulsar.git /coder/pulsar &&
-    cd /coder/pulsar &&
-    gem build pulsar.gemspec --output pulsar.gem &&
-    gem install pulsar.gem
-
 if [ ! -d "/home/embold/pulsar" ]; then
     git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
-    rsync -a --ignore-existing /coder/.pulsar /home/embold
 fi
 
 if [ ! -d "/.zshrc-initial" ]; then

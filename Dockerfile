@@ -7,7 +7,8 @@ ARG LANG=C.UTF-8 \
     DATE_TIMEZONE=UTC \
     NODE_VERSION=20.9.0
 
-ENV CODER_VERSION=2
+ENV CODER_VERSION=2 \
+    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"
 
 # Set up timezone and locale
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
@@ -70,34 +71,17 @@ RUN apt-get update && \
 
 RUN chsh -s $(which zsh)
 
-# Install node and npm
-# RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | \
-#     tar xzfv - \
-#     --exclude=CHANGELOG.md \
-#     --exclude=LICENSE \
-#     --exclude=README.md \
-#     --strip-components 1 -C /usr/local/
-
-# Install yarn and n
-# RUN npm install -g yarn n && \
-#     n $NODE_VERSION
-
 # Copy configuration files
-COPY conf/watches.conf /etc/systctl.d/watches.conf
-COPY conf/.pulsar /coder/.pulsar
 COPY conf/.ssh /coder/.ssh
-
-# # Download intellij-idea-ultimate
-# RUN mkdir -p /opt/idea && \
-#     curl -L "https://download.jetbrains.com/product?code=IU&latest&distribution=linux" | \
-#     tar -C /opt/idea --strip-components 1 -xzvf - && \
-#     ln -s /opt/idea/bin/idea.sh /usr/bin/intellij-idea-ultimate
 
 # Create a non-root user and add it to the necessary groups
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
     echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 COPY configure /coder/configure
+
+RUN curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem && \
+    chown -R embold:embold /coder/
 
 USER embold
 
