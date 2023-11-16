@@ -79,6 +79,7 @@ RUN chsh -s $(which zsh)
 # Copy configuration files
 COPY conf/.ssh /coder/.ssh
 COPY configure /coder/configure
+COPY conf/sshd_config /etc/ssh/sshd_config
 
 # Create a non-root user and add it to the necessary groups
 RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
