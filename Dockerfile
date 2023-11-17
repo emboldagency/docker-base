@@ -1,16 +1,19 @@
 # Use ubuntu as the base image
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 
 # Use ARG for build-time variables
-ARG LANG=C.UTF-8 \
-    TZ=UTC \
-    DATE_TIMEZONE=UTC \
-    NODE_VERSION=20.9.0
+ARG NODE_VERSION=20.9.0
 
-ENV CODER_VERSION=2 \
-    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
+ENV DATE_TIMEZONE=UTC \
     GEM_HOME=/home/embold/.gems \
-    PATH="${PATH}:${GEM_HOME}/bin"
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    LC_CTYPE=en_US.UTF-8 \
+    PATH="${PATH}:${GEM_HOME}/bin" \
+    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
+    TZ=UTC \
+    CODER_VERSION=2
 
 # Set up timezone and locale
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
