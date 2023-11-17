@@ -6,9 +6,9 @@ ARG NODE_VERSION=20.9.0
 
 ENV DATE_TIMEZONE=UTC \
     GEM_HOME=/home/embold/.gems \
-    LANG=en_US.UTF-8 \
+    LANG=C.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
-    LC_ALL=en_US.UTF-8 \
+    LC_ALL=C.UTF-8 \
     LC_CTYPE=en_US.UTF-8 \
     PATH="${PATH}:${GEM_HOME}/bin" \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
@@ -21,7 +21,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
 
 # Install packages
 RUN apt-get update \
-    && apt-get install software-properties-common gpg-agent curl -y --no-install-recommends \
+    && apt-get install software-properties-common gpg-agent curl locales -y --no-install-recommends \
+    && locale-gen "en_US.UTF-8"; \
     && add-apt-repository -y ppa:git-core/ppa \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
