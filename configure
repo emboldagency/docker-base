@@ -20,6 +20,11 @@ if [ ! -d "/home/embold/.ssh" ]; then
     sudo chmod 0700 /home/embold/.ssh
     sudo chmod 600 /home/embold/.ssh/*
     sudo chmod 600 /home/embold/.config/coder-api/gitsshkey.json
+
+    # Configuring git to use the SSH key for signing
+    git config --global gpg.format ssh
+    git config --global commit.gpgsign true
+    git config --global user.signingkey ~/.ssh/coder
 fi
 
 ssh-keygen -R github.com
