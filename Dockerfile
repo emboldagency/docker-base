@@ -20,7 +20,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
 # Install packages
 RUN apt-get update \
     && apt-get install software-properties-common gpg-agent curl -y --no-install-recommends \
-    && locale-gen "en_US.UTF-8"; \
     && add-apt-repository -y ppa:git-core/ppa \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
