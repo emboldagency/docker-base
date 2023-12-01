@@ -27,9 +27,9 @@ if [ ! -d "/home/embold/.ssh" ]; then
     git config --global user.signingkey ~/.ssh/coder
 fi
 
-ssh-keygen -R github.com
+# ssh-keygen -R github.com
 # Save GitHub's current keys from the API
-curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
+# curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
 
 if [ ! -d "/home/embold/pulsar" ]; then
     git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
