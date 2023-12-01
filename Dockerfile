@@ -1,7 +1,8 @@
-# Use ubuntu as the base image
-FROM ubuntu:22.04
+ARG UBUNTU_VERSION=22.04
 
-# Use ARG for build-time variables
+# Use ubuntu as the base image
+FROM ubuntu:${UBUNTU_VERSION}
+
 ARG NODE_VERSION=20.9.0
 
 ENV CODER_VERSION=2 \
@@ -13,12 +14,14 @@ ENV CODER_VERSION=2 \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
     TZ=UTC
 
-# Set up timezone and locale
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
-    echo $TZ > /etc/timezone
+# Copy configuration files
+COPY coder /coder
 
-# Install packages
-RUN apt-get update \
+# Set up timezone and locale
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    # Install packages
+    && apt-get update \
     && apt-get install software-properties-common gpg-agent curl -y --no-install-recommends \
     && add-apt-repository -y ppa:git-core/ppa \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -73,21 +76,16 @@ RUN apt-get update \
     zip \
     zlib1g-dev \
     zsh \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN chsh -s $(which zsh)
-
-# Copy configuration files
-COPY conf/.ssh /coder/.ssh
-COPY configure /coder/configure
-COPY conf/sshd_config /etc/ssh/sshd_config
-
-# Create a non-root user and add it to the necessary groups
-RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
-    echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
-
-RUN curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
-    && chown -R embold:embold /coder/
+    && rm -rf /var/lib/apt/lists/* \
+    # Create a non-root user and add it to the necessary groups
+    && chsh -s $(which zsh) \
+    && ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
+    # Create a non-root user and add it to the necessary groups
+    && adduser --gecos '' --disabled-password --shell /bin/zsh embold \
+    && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
+    && curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
+    && chown -R embold:embold /coder \
+    && chmod 774  /coder
 
 USER embold
 
