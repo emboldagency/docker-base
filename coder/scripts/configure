@@ -12,10 +12,11 @@ if [ ! -d "/home/embold/.ssh" ]; then
         --url "${CODER_AGENT_URL}api/v2/workspaceagents/me/gitsshkey" \
         --header "Coder-Session-Token: $CODER_AGENT_TOKEN" \
         -o /home/embold/.config/coder-api/gitsshkey.json &&
-        jq -r '.public_key' /home/embold/.config/coder-api/gitsshkey.json > \
-            /home/embold/.ssh/coder.pub &&
-        jq -r '.private_key' /home/embold/.config/coder-api/gitsshkey.json > \
-            /home/embold/.ssh/coder
+        jq -r '.public_key' /home/embold/.config/coder-api/gitsshkey.json |
+        tr -d "\n" >/home/embold/.ssh/coder.pub &&
+        echo -n " coder:$CODER_USERNAME@embold.app" >>/home/embold/.ssh/coder.pub &&
+        jq -r '.private_key' /home/embold/.config/coder-api/gitsshkey.json \
+            >/home/embold/.ssh/coder
 
     sudo chmod 0700 /home/embold/.ssh
     sudo chmod 600 /home/embold/.ssh/*
