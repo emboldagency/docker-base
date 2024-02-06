@@ -8,8 +8,7 @@ ARG NODE_VERSION=20.9.0
 ENV CODER_VERSION=2 \
     DATE_TIMEZONE=UTC \
     GEM_HOME=/home/embold/.gems \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
+    LANG=en_US.utf8 \
     PATH="${PATH}:${GEM_HOME}/bin" \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
     TZ=UTC
@@ -85,7 +84,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
     && curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
     && chown -R embold:embold /coder \
-    && chmod 774  /coder
+    && chmod 774  /coder \
+    # Install locale
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
 USER embold
 
