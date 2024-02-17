@@ -71,6 +71,8 @@ if [ ! -d "/home/embold/browsersync" ]; then
     git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
 fi
 
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh )" "bash" --unattended > /dev/null 2>&1
+
 curl https://getmic.ro | bash
 sudo mv micro /usr/bin
 
