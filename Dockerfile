@@ -23,6 +23,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && apt-get update \
     && apt-get install software-properties-common gpg-agent curl -y --no-install-recommends \
     && add-apt-repository -y ppa:git-core/ppa \
+    && add-apt-repository -y universe \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
@@ -35,6 +36,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     build-essential \
     ca-certificates \
     cron \
+    fzf \
     git \
     gh \
     gnupg \
