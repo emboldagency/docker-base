@@ -107,7 +107,7 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' \
     && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
     && npm install -g yarn n \
-    && sudo apt update \
+    && sudo apt-get update \
     # add fzf for smarter CD
-    && sudo apt install fzf -y \
+    && sudo apt-get install fzf -y \
     && rm -rf /var/lib/apt/lists/*
