@@ -36,7 +36,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     build-essential \
     ca-certificates \
     cron \
-    fzf \
     git \
     gh \
     gnupg \
