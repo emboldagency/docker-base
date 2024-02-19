@@ -110,4 +110,5 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     # add fzf for smarter CD
     && sudo apt-get update \
     && sudo apt-get install fzf -y \
+    && sudo apt-get install bat -y \
     && sudo rm -rf /var/lib/apt/lists/*
