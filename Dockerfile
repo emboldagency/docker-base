@@ -85,7 +85,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
     && curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
     && chown -R embold:embold /coder \
-    && chmod 774  /coder \
+    && chmod 774 /coder \
     # Install locale
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
@@ -109,6 +109,5 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     && npm install -g yarn n \
     # add fzf for smarter CD
     && sudo apt-get update \
-    && sudo apt-get install fzf -y \
-    && sudo apt-get install bat -y \
+    && sudo apt-get install fzf bat -y \
     && sudo rm -rf /var/lib/apt/lists/*
