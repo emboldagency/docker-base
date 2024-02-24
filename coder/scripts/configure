@@ -14,7 +14,7 @@ if [ ! -d "/home/embold/.ssh" ]; then
         -o /home/embold/.config/coder-api/gitsshkey.json &&
         jq -r '.public_key' /home/embold/.config/coder-api/gitsshkey.json |
         tr -d "\n" >/home/embold/.ssh/coder.pub &&
-        echo -n " coder:$CODER_USERNAME@embold.app" >>/home/embold/.ssh/coder.pub &&
+        echo -n " coder:$CODER_USERNAME@embold.dev" >>/home/embold/.ssh/coder.pub &&
         jq -r '.private_key' /home/embold/.config/coder-api/gitsshkey.json \
             >/home/embold/.ssh/coder
 
