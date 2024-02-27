@@ -7,11 +7,10 @@ ARG NODE_VERSION=20.9.0
 
 ENV CODER_VERSION=2 \
     DATE_TIMEZONE=UTC \
-    GEM_HOME=/home/embold/.gems \
     LANG=en_US.utf8 \
-    PATH="${PATH}:${GEM_HOME}/bin" \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
-    TZ=UTC
+    TZ=UTC \
+    PATH=/home/embold/.rbenv/shims:/home/embold/.rbenv/bin:/home/embold/.rbenv/plugins/ruby-build/bin:$PATH
 
 # Copy configuration files
 COPY coder /coder
@@ -77,6 +76,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     zlib1g-dev \
     zsh \
     && rm -rf /var/lib/apt/lists/* \
+    # Install locale
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
     # Create a non-root user and add it to the necessary groups
     && chsh -s $(which zsh) \
     && ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
@@ -85,15 +86,13 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
     && curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
     && chown -R embold:embold /coder \
-    && chmod 774 /coder \
-    # Install locale
-    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+    && chmod 774 /coder
 
 USER embold
 
 SHELL [ "bash", "-c" ]
 
-# Install fnm, node, npm, yarn, n, fzf
+# Install user packages
 RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     && curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/home/embold/.fnm" --skip-shell \
     && sudo ln -s /home/embold/.fnm/fnm /usr/local/bin/ \
@@ -110,4 +109,7 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     # add fzf for smarter CD
     && sudo apt-get update \
     && sudo apt-get install fzf bat -y \
-    && sudo rm -rf /var/lib/apt/lists/*
+    && sudo rm -rf /var/lib/apt/lists/* \
+    # add rbenv
+    && git clone https://github.com/rbenv/rbenv.git /home/embold/.rbenv \
+    && git clone https://github.com/rbenv/ruby-build.git /home/embold/.rbenv/plugins/ruby-build

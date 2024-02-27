@@ -71,6 +71,11 @@ if [ ! -d "/home/embold/browsersync" ]; then
     git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
 fi
 
+if [ ! -d "/home/embold/.rbenv" ]; then
+    git clone https://github.com/rbenv/rbenv.git /home/embold/.rbenv \
+    && git clone https://github.com/rbenv/ruby-build.git /home/embold/.rbenv/plugins/ruby-build
+fi
+
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh )" "bash" --unattended > /dev/null 2>&1
 
 curl https://getmic.ro | bash
