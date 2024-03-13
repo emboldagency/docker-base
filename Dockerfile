@@ -5,11 +5,14 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 ARG NODE_VERSION=20.9.0
 
-ENV DATE_TIMEZONE=UTC \
+ENV BUNDLE_APP_CONFIG=$GEM_HOME \
+    BUNDLE_SILENCE_ROOT_WARNING=1 \
+    DATE_TIMEZONE=UTC \
+    GEM_HOME=/home/embold/.gems \
     LANG=en_US.utf8 \
+    PATH="${PATH}:${GEM_HOME}/bin" \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
-    TZ=UTC \
-    PATH=/coder/ruby-build/bin:$PATH
+    TZ=UTC
 
 # Copy configuration files
 COPY coder /coder
@@ -112,4 +115,10 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     # add ruby-build
     && git clone https://github.com/rbenv/ruby-build.git /coder/ruby-build \
     && PREFIX=/usr/local sudo /coder/ruby-build/install.sh \
-    && rm -rf /coder/ruby-build
+    && rm -rf /coder/ruby-build \
+    # skip installing gem documentation
+    && mkdir -p /usr/local/etc; \
+    { \
+    echo 'install: --no-document'; \
+    echo 'update: --no-document'; \
+    } >> /usr/local/etc/gemrc
