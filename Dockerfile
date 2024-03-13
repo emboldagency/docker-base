@@ -88,7 +88,13 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
     && curl -sL https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
     && chown -R embold:embold /coder \
-    && chmod 774 /coder
+    && chmod 774 /coder \
+    # skip installing gem documentation
+    && mkdir -p /usr/local/etc; \
+    { \
+    echo 'install: --no-document'; \
+    echo 'update: --no-document'; \
+    } >> /usr/local/etc/gemrc
 
 USER embold
 
@@ -115,10 +121,4 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     # add ruby-build
     && git clone https://github.com/rbenv/ruby-build.git /coder/ruby-build \
     && PREFIX=/usr/local sudo /coder/ruby-build/install.sh \
-    && rm -rf /coder/ruby-build \
-    # skip installing gem documentation
-    && mkdir -p /usr/local/etc; \
-    { \
-    echo 'install: --no-document'; \
-    echo 'update: --no-document'; \
-    } >> /usr/local/etc/gemrc
+    && rm -rf /coder/ruby-build
