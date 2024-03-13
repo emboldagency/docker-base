@@ -94,7 +94,11 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     { \
     echo 'install: --no-document'; \
     echo 'update: --no-document'; \
-    } >> /usr/local/etc/gemrc
+    } >> /usr/local/etc/gemrc \
+    # add ruby-build
+    && git clone https://github.com/rbenv/ruby-build.git /coder/ruby-build \
+    && PREFIX=/usr/local /coder/ruby-build/install.sh \
+    && rm -rf /coder/ruby-build
 
 USER embold
 
@@ -117,8 +121,4 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     # add fzf for smarter CD
     && sudo apt-get update \
     && sudo apt-get install fzf bat -y \
-    && sudo rm -rf /var/lib/apt/lists/* \
-    # add ruby-build
-    && git clone https://github.com/rbenv/ruby-build.git /coder/ruby-build \
-    && PREFIX=/usr/local sudo /coder/ruby-build/install.sh \
-    && rm -rf /coder/ruby-build
+    && sudo rm -rf /var/lib/apt/lists/*
