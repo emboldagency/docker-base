@@ -110,6 +110,6 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     && sudo apt-get install fzf bat -y \
     && sudo rm -rf /var/lib/apt/lists/* \
     # add ruby-build
-    && git clone git@github.com:rbenv/ruby-build.git /coder/ruby-build \
+    && gh clone rbenv/ruby-build /coder/ruby-build \
     && PREFIX=/usr/local sudo /coder/ruby-build/install.sh \
     && rm -rf /coder/ruby-build
