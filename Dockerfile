@@ -5,12 +5,11 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 ARG NODE_VERSION=20.9.0
 
-ENV CODER_VERSION=2 \
-    DATE_TIMEZONE=UTC \
+ENV DATE_TIMEZONE=UTC \
     LANG=en_US.utf8 \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
     TZ=UTC \
-    PATH=/home/embold/.rbenv/shims:/home/embold/.rbenv/bin:/home/embold/.rbenv/plugins/ruby-build/bin:$PATH
+    PATH=/coder/ruby-build/bin:$PATH
 
 # Copy configuration files
 COPY coder /coder
@@ -84,7 +83,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     # Create a non-root user and add it to the necessary groups
     && adduser --gecos '' --disabled-password --shell /bin/zsh embold \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
-    && curl -L https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
+    && curl -sL https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
     && chown -R embold:embold /coder \
     && chmod 774 /coder
 
@@ -110,6 +109,7 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     && sudo apt-get update \
     && sudo apt-get install fzf bat -y \
     && sudo rm -rf /var/lib/apt/lists/* \
-    # add rbenv
-    && git clone https://github.com/rbenv/rbenv.git /home/embold/.rbenv \
-    && git clone https://github.com/rbenv/ruby-build.git /home/embold/.rbenv/plugins/ruby-build
+    # add ruby-build
+    && git clone git@github.com:rbenv/ruby-build.git /coder/ruby-build \
+    && PREFIX=/usr/local sudo /coder/ruby-build/install.sh \
+    && rm -rf /coder/ruby-build
