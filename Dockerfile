@@ -1,18 +1,20 @@
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=22.04 \
+    NODE_VERSION=20.9.0
 
 # Use ubuntu as the base image
 FROM ubuntu:${UBUNTU_VERSION}
 
-ARG NODE_VERSION=20.9.0
+ARG NODE_VERSION
 
-ENV BUNDLE_APP_CONFIG=$GEM_HOME \
-    BUNDLE_SILENCE_ROOT_WARNING=1 \
-    DATE_TIMEZONE=UTC \
-    GEM_HOME=/home/embold/.gems \
+ENV DATE_TIMEZONE=UTC \
     LANG=en_US.utf8 \
+    TZ=UTC \
+    # Ruby
+    GEM_HOME=/home/embold/.gems \
+    BUNDLE_APP_CONFIG=${GEM_HOME} \
+    BUNDLE_SILENCE_ROOT_WARNING=1 \
     PATH="${PATH}:${GEM_HOME}/bin" \
-    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
-    TZ=UTC
+    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"
 
 # Copy configuration files
 COPY coder /coder
