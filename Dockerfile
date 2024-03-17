@@ -10,10 +10,7 @@ ENV DATE_TIMEZONE=UTC \
     LANG=en_US.utf8 \
     TZ=UTC \
     # Ruby
-    GEM_HOME=/home/embold/.gems \
-    BUNDLE_APP_CONFIG=/home/embold/.gems \
     BUNDLE_SILENCE_ROOT_WARNING=1 \
-    PATH="${PATH}:/home/embold/.gems/bin" \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"
 
 # Copy configuration files
