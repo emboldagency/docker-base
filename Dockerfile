@@ -10,6 +10,7 @@ ENV DATE_TIMEZONE=UTC \
     LANG=en_US.utf8 \
     TZ=UTC \
     # Ruby
+    BUNDLE_DISABLE_SHARED_GEMS=1 \
     BUNDLE_SILENCE_ROOT_WARNING=1 \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"
 
@@ -85,7 +86,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     # Create a non-root user and add it to the necessary groups
     && adduser --gecos '' --disabled-password --shell /bin/zsh embold \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
-    && curl -sL https://github.com/emboldagency/nebulab-pulsar/releases/latest/download/pulsar.gem -o /coder/pulsar.gem \
     && chown -R embold:embold /coder \
     && chmod 774 /coder \
     # skip installing gem documentation
