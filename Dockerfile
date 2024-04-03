@@ -1,7 +1,7 @@
 ARG UBUNTU_VERSION=22.04 \
     NODE_VERSION=20.9.0
 
-# Use ubuntu as the base image
+# Use Ubuntu as the base image
 FROM ubuntu:${UBUNTU_VERSION}
 
 ARG NODE_VERSION
@@ -68,7 +68,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     openssh-server \
     ssh \
     sudo \
-    # systemd \
     unzip \
     vim \
     whois \
@@ -79,17 +78,17 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     zsh \
     && rm -rf /var/lib/apt/lists/* \
     # Install locale
-    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
+    & localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
+    # Setup our sshd config
+    & ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
     # Create a non-root user and add it to the necessary groups
-    && chsh -s $(which zsh) \
-    && ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
-    # Create a non-root user and add it to the necessary groups
-    && adduser --gecos '' --disabled-password --shell /bin/zsh embold \
+    & chsh -s $(which zsh) \
+    & adduser --gecos '' --disabled-password --shell /bin/zsh embold \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
     && chown -R embold:embold /coder \
     && chmod 774 /coder \
     # skip installing gem documentation
-    && mkdir -p /usr/local/etc; \
+    & mkdir -p /usr/local/etc; \
     { \
     echo 'install: --no-document'; \
     echo 'update: --no-document'; \
@@ -118,6 +117,6 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
     && npm install -g yarn n \
     # add fzf for smarter CD
-    && sudo apt-get update \
+    & sudo apt-get update \
     && sudo apt-get install fzf bat -y \
     && sudo rm -rf /var/lib/apt/lists/*

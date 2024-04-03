@@ -28,22 +28,9 @@ if [ ! -d "/home/embold/.ssh" ]; then
     git config --global user.signingkey ~/.ssh/coder
 fi
 
-# ssh-keygen -R github.com
-# Save GitHub's current keys from the API
-# curl -L https://api.github.com/meta | jq -r '.ssh_keys | .[]' | sed -e 's/^/github.com /' >>~/.ssh/known_hosts
-
-if [ ! -d "/home/embold/pulsar" ]; then
-    git clone git@github.com:emboldagency/pulsar.git /home/embold/pulsar
-fi
-
-if [ ! -d "/.zshrc-initial" ]; then
-    sudo mkdir /.zshrc-initial
-    sudo chown embold:embold /.zshrc-initial
+sudo mkdir /.zshrc-initial &&
+    sudo chown embold:embold /.zshrc-initial &&
     git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
-else
-    cd /.zshrc-initial
-    git pull
-fi
 
 # Get dotfiles repo
 if [ ! -f /home/embold/.config/embold-api/dotfiles.json ]; then
@@ -71,12 +58,7 @@ if [ ! -d "/home/embold/browsersync" ]; then
     git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
 fi
 
-# if [ ! -d "/home/embold/.rbenv" ]; then
-#     git clone https://github.com/rbenv/rbenv.git /home/embold/.rbenv \
-#     && git clone https://github.com/rbenv/ruby-build.git /home/embold/.rbenv/plugins/ruby-build
-# fi
-
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh )" "bash" --unattended > /dev/null 2>&1
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh)" "bash" --unattended >/dev/null 2>&1
 
 curl https://getmic.ro | bash
 sudo mv micro /usr/bin
