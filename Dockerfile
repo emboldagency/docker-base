@@ -1,153 +1,129 @@
-FROM ubuntu:focal
+ARG UBUNTU_VERSION=22.04 \
+    NODE_VERSION=20.9.0
 
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+# Use Ubuntu as the base image
+FROM ubuntu:${UBUNTU_VERSION}
 
-RUN apt-get update --fix-missing
-RUN apt-get upgrade -y
+ARG NODE_VERSION
 
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository ppa:ondrej/php
-RUN add-apt-repository -y ppa:git-core/ppa
+ENV DATE_TIMEZONE=UTC \
+    LANG=en_US.utf8 \
+    TZ=UTC \
+    # Ruby
+    BUNDLE_DISABLE_SHARED_GEMS=1 \
+    BUNDLE_SILENCE_ROOT_WARNING=1 \
+    PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"
 
-RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
-		zsh \
-    git \
-    bash \
+# Install base system tools, required to build most packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    apt-transport-https \
     curl \
+    gpg-agent \
+    locales \
+    lsb-release \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/* \
+    # Setup locale
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+# Install development tools
+RUN add-apt-repository -y universe \
+    && add-apt-repository -y ppa:git-core/ppa \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update  \
+    && apt-get install -y --no-install-recommends \
+    autoconf \
+    bison \
+    build-essential \
+    ca-certificates \
+    cron \
+    git \
+    gh \
+    gnupg \
+    libbz2-dev \
+    libffi-dev \
+    libfontconfig1 \
+    libgdbm-dev \
+    libgtk-3-0 \
+    libncurses5-dev \
+    libpng-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libxi6 \
+    libxml2-dev \
+    libxrender1 \
+    libxslt-dev \
+    libxtst6 \
+    libyaml-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install system administration tools
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
     htop \
+    iputils-ping \
+    jq \
+    less \
     man \
-    vim \
+    nano \
+    rsync \
+    openssh-server \
     ssh \
     sudo \
-    lsb-release \
-    ca-certificates \
-    locales \
-    gnupg \
-		zip \
-		unzip \
-		whois \
-		nano \
-		cron \
-    # Packages required for multi-editor support
-    libxtst6 \
-    libxrender1 \
-    libfontconfig1 \
-    libxi6 \
-    libgtk-3-0 \
-		libssl-dev \
-		libreadline-dev \
-		zlib1g-dev \
-		autoconf \
-		bison \
-		build-essential \
-		libyaml-dev \
-		libreadline-dev \
-		libncurses5-dev \
-		libffi-dev \
-		libgdbm-dev \
-		libsqlite3-dev
-		
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    systemd \
-    openssh-server
-		
-RUN service ssh start
+    unzip \
+    vim \
+    whois \
+    xclip \
+    xsel \
+    zip \
+    zlib1g-dev \
+    zsh \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
-  echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
-  echo "X11UseLocalhost no" >> /etc/ssh/sshd_config && \
-  echo "StrictModes no" >> /etc/ssh/sshd_config
+# Configure environment
+RUN ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
+    # Create a non-root user and add it to the necessary groups
+    && chsh -s $(which zsh) \
+    && adduser --gecos '' --disabled-password --shell /bin/zsh embold \
+    && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
+    && chown -R embold:embold /coder \
+    && chmod 774 /coder \
+    # skip installing gem documentation
+    && mkdir -p /usr/local/etc; \
+    { \
+    echo 'install: --no-document'; \
+    echo 'update: --no-document'; \
+    } >> /usr/local/etc/gemrc \
+    # add ruby-build
+    && git clone https://github.com/rbenv/ruby-build.git /coder/ruby-build \
+    && PREFIX=/usr/local /coder/ruby-build/install.sh \
+    && rm -rf /coder/ruby-build
 
-RUN apt-get install -y libxml2-dev
-
-RUN chsh -s $(which zsh)
-
-# Install the desired Node version into `/usr/local/`
-ENV NODE_VERSION=18.14.2
-RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | \
-    tar xzfv - \
-    --exclude CHANGELOG.md \
-    --exclude LICENSE \
-    --exclude README.md \
-    --strip-components 1 -C /usr/local/
-
-RUN apt-get install -y \
-		jq \
-    libpng-dev
-
-# Set up Ruby
-RUN apt-get install -y \
-		ruby \
-		ruby-dev \
-		rubygems \
-		ruby-colorize
-RUN gem install bundler colorls pulsar
-
-RUN apt-get install -y \
-		xclip \
-    xsel
-
-# Install the yarn package manager
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -y yarn 
-# IF THE ABOVE LINE ERRORS RUN "sudo hwclock --hctosys" in WSL
-RUN npm install -g n
-RUN n 18.14.2
-
-# WP CLI
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-RUN chmod +x wp-cli.phar
-RUN mv wp-cli.phar /usr/local/bin/wp
-
-RUN apt-get install apache2 -y
-RUN apt-get install mariadb-common mariadb-server mariadb-client -y
-
-RUN a2enmod rewrite
-RUN a2enmod headers
-
-RUN chown -R www-data:www-data /var/www/html
-
-RUN rm /var/www/html/index.html
-
-COPY mysql.sh /mysql.sh
-RUN chmod +x /mysql.sh
-
-COPY install-composer.sh /install-composer.sh
-RUN chmod +x /install-composer.sh
-
-COPY .zshrc /.zshrc-initial/.zshrc
-
-ENV DATE_TIMEZONE UTC
-
-COPY ["configure", "/coder/configure"]
-
-VOLUME /var/www/html
-VOLUME /var/log/httpd
-VOLUME /var/run/mysqld
-VOLUME /var/lib/mysql
-VOLUME /var/log/mysql
-VOLUME /etc/apache2
-
-RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y \
-    libxtst6 \
-    libxrender1 \
-    libfontconfig1 \
-    libxi6 \
-    libgtk-3-0
-
-RUN mkdir -p /opt/idea
-#RUN curl -L "https://download.jetbrains.com/product?code=PS&latest&distribution=linux" | tar -C /opt/phpstorm --strip-components 1 -xzvf -
-#RUN curl -L "https://download.jetbrains.com/product?code=RM&latest&distribution=linux" | tar -C /opt/rubymine --strip-components 1 -xzvf -
-RUN curl -L "https://download.jetbrains.com/product?code=IU&latest&distribution=linux" | tar -C /opt/idea --strip-components 1 -xzvf -
-
-#RUN ln -s /opt/phpstorm/bin/phpstorm.sh /usr/bin/phpstorm
-#RUN ln -s /opt/rubymine/bin/rubymine.sh /usr/bin/rubymine
-RUN ln -s /opt/idea/bin/idea.sh /usr/bin/intellij-idea-ultimate
-
-RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold && \
-  echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
-RUN adduser embold www-data
-RUN adduser www-data embold
 USER embold
+
+SHELL [ "bash", "-c" ]
+
+# Install user packages
+RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
+    && curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/home/embold/.fnm" --skip-shell \
+    && sudo ln -s /home/embold/.fnm/fnm /usr/local/bin/ \
+    && sudo chmod +x /usr/local/bin/fnm \
+    # smoke test for fnm
+    && fnm -V  \
+    && /bin/bash -c "source /home/embold/.bashrc && fnm install ${NODE_VERSION}" \
+    && /bin/bash -c "source /home/embold/.bashrc && fnm alias default ${NODE_VERSION}" \
+    # add fnm for shell
+    && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/node" /usr/local/bin/node' \
+    && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' \
+    && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
+    && npm install -g yarn n \
+    # add fzf for smarter CD
+    & sudo apt-get update \
+    && sudo apt-get install fzf bat -y \
+    && sudo rm -rf /var/lib/apt/lists/*

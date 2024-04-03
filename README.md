@@ -1,1 +1,14 @@
-This is the old branch from before we switched to Coder v2
+# docker-base
+
+Coder v2 Ubuntu docker base image
+
+```
+# Set the base image version
+export UBUNTU_VERSION=22.04
+
+# Build the image
+docker build -t emboldcreative/base:ubuntu${UBUNTU_VERSION} .
+
+# Push the image to the registry
+docker push emboldcreative/base:ubuntu${UBUNTU_VERSION}
+```
