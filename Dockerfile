@@ -14,24 +14,29 @@ ENV DATE_TIMEZONE=UTC \
     BUNDLE_SILENCE_ROOT_WARNING=1 \
     PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git"
 
-# Copy configuration files
-COPY coder /coder
-
-# Set up timezone and locale
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+# Install base system tools, required to build most packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    apt-transport-https \
+    curl \
+    gpg-agent \
+    locales \
+    lsb-release \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/* \
+    # Setup locale
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
-    # Install packages
-    && apt-get update \
-    && apt-get install software-properties-common gpg-agent curl -y --no-install-recommends \
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+# Install development tools
+RUN add-apt-repository -y universe \
     && add-apt-repository -y ppa:git-core/ppa \
-    && add-apt-repository -y universe \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    # Install Packages
     && apt-get update  \
     && apt-get install -y --no-install-recommends \
-    apt-transport-https \
     autoconf \
     bison \
     build-essential \
@@ -40,10 +45,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     git \
     gh \
     gnupg \
-    htop \
-    iputils-ping \
-    jq \
-    less \
     libbz2-dev \
     libffi-dev \
     libfontconfig1 \
@@ -60,8 +61,15 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     libxslt-dev \
     libxtst6 \
     libyaml-dev \
-    locales \
-    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install system administration tools
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    htop \
+    iputils-ping \
+    jq \
+    less \
     man \
     nano \
     rsync \
@@ -76,19 +84,18 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     zip \
     zlib1g-dev \
     zsh \
-    && rm -rf /var/lib/apt/lists/* \
-    # Install locale
-    & localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
-    # Setup our sshd config
-    & ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure environment
+RUN ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
     # Create a non-root user and add it to the necessary groups
-    & chsh -s $(which zsh) \
-    & adduser --gecos '' --disabled-password --shell /bin/zsh embold \
+    && chsh -s $(which zsh) \
+    && adduser --gecos '' --disabled-password --shell /bin/zsh embold \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
     && chown -R embold:embold /coder \
     && chmod 774 /coder \
     # skip installing gem documentation
-    & mkdir -p /usr/local/etc; \
+    && mkdir -p /usr/local/etc; \
     { \
     echo 'install: --no-document'; \
     echo 'update: --no-document'; \
