@@ -86,6 +86,9 @@ RUN apt-get update \
     zsh \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy configuration files
+COPY coder /coder
+
 # Configure environment
 RUN ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
     # Create a non-root user and add it to the necessary groups
