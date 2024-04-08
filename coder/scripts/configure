@@ -32,6 +32,9 @@ sudo mkdir /.zshrc-initial &&
     sudo chown embold:embold /.zshrc-initial &&
     git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
 
+mkdir -p $GEM_HOME \
+    && gem install colorls /coder/pulsar-*.gem --conservative
+
 # Get dotfiles repo
 if [ ! -f /home/embold/.config/embold-api/dotfiles.json ]; then
     mkdir -p /home/embold/.config/embold-api
