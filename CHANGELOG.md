@@ -16,6 +16,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 <!-- ### Fixed -->
 <!-- ### Security -->
 
+## [v1.1.0](https://github.com/emboldagency/docker-base/tree/v1.1.0) - 2024-08-07
+
+### Added
+
+- Workflow can be run manually
+
+### Changed
+
+- Fix deprecations
+
+[Full Changelog](https://github.com/emboldagency/docker-base/compare/v1.0.0...v1.1.0)
+
 ## [v1.0.1](https://github.com/emboldagency/docker-base/tree/v1.0.1) - 2024-08-07
 
 ### Added
