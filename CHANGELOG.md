@@ -15,8 +15,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 <!-- ### Removed -->
 <!-- ### Fixed -->
 <!-- ### Security -->
+
+## [v1.2.0](https://github.com/emboldagency/docker-base/tree/v1.2.0) - 2024-12-03
+
 ### Deprecated
 - Deprecated getting dotfiles URL from API on staging
+
+[Full Changelog](https://github.com/emboldagency/docker-base/compare/v1.1.0...v1.2.0)
 
 ## [v1.1.0](https://github.com/emboldagency/docker-base/tree/v1.1.0) - 2024-08-07
 
