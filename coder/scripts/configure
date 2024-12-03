@@ -35,18 +35,23 @@ sudo mkdir /.zshrc-initial &&
 mkdir -p $GEM_HOME \
     && gem install colorls /coder/pulsar-*.gem --conservative
 
-# Get dotfiles repo
-if [ ! -f /home/embold/.config/embold-api/dotfiles.json ]; then
-    mkdir -p /home/embold/.config/embold-api
-    curl -LGo /home/embold/.config/embold-api/dotfiles.json \
-        "https://embold.net/api/dotfiles/" \
-        -d user=$CODER_USERNAME
+if [ -z $DOTFILES_URL]; then
+    # Print a deprecation warning letting the user know that they should use the coder param
+    echo "Warning: DOTFILES_URL is not set. Fetching from the staging API is deprecated. Please fill in the dotfiles_url coder parameter instead."
+    # Get dotfiles repo
+    if [ ! -f /home/embold/.config/embold-api/dotfiles.json ]; then
+        mkdir -p /home/embold/.config/embold-api
+        curl -LGo /home/embold/.config/embold-api/dotfiles.json \
+            "https://embold.net/api/dotfiles/" \
+            -d user=$CODER_USERNAME
+    fi
+
+    DOTFILES_URL=$(jq -re '.repo' '/home/embold/.config/embold-api/dotfiles.json')
 fi
 
-DOTFILES_URI=$(jq -re '.repo' '/home/embold/.config/embold-api/dotfiles.json')
-if [ -n "$DOTFILES_URI" ]; then
-    echo "Installing dotfiles from $DOTFILES_URI"
-    coder dotfiles -y "$DOTFILES_URI"
+if [ -n "$DOTFILES_URL" ]; then
+    echo "Installing dotfiles from $DOTFILES_URL"
+    coder dotfiles -y "$DOTFILES_URL"
 fi
 
 if ! command -v lazygit &>/dev/null; then
