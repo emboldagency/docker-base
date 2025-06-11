@@ -22,27 +22,24 @@ RUN apt-get update \
     locales \
     lsb-release \
     software-properties-common \
-    && rm -rf /var/lib/apt/lists/* \
-    # Setup locale
+    tzdata \
+    # Setup locale and timezone
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
-    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
-
-# Install development tools
-RUN add-apt-repository -y universe \
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias $LANG \
+    # Add repositories and install the rest...
+    && add-apt-repository -y universe \
     && add-apt-repository -y ppa:git-core/ppa \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
     && apt-get update  \
-    && apt-get install -y --no-install-recommends --fix-missing \
+    && apt-get install -y --no-install-recommends \
     autoconf \
     bison \
     build-essential \
     ca-certificates \
     cron \
-    gh \
-    git \
     gnupg \
     libbz2-dev \
     libcurl4-openssl-dev \
@@ -62,23 +59,44 @@ RUN add-apt-repository -y universe \
     libxtst6 \
     libyaml-dev \
     xdg-utils \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install system administration tools
-RUN apt-get update \
+    # Install system administration tools
     && apt-get install -y --no-install-recommends \
+    bat \
+    dnsutils \
+    fd-find \
+    file \
+    fzf \
+    gh \
+    git \
     htop \
     iputils-ping \
     jq \
     less \
+    lsof \
     man \
+    mc \
     nano \
-    rsync \
+    ncdu \
+    net-tools \
+    nmap \
     openssh-server \
+    p7zip-full \
+    python3 \
+    python3-pip \
+    ripgrep \
+    rsync \
+    screen \
     ssh \
+    strace \
     sudo \
+    sysstat \
+    telnet \
+    tmux \
+    traceroute \
+    tree \
     unzip \
     vim \
+    wget \
     whois \
     xclip \
     xsel \
@@ -93,7 +111,6 @@ COPY coder /coder
 # Configure environment
 RUN ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
     # Create a non-root user and add it to the necessary groups
-    && chsh -s $(which zsh) \
     && adduser --gecos '' --disabled-password --shell /bin/zsh embold \
     && echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
     && chown -R embold:embold /coder \
@@ -126,8 +143,4 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /home/embold/.bashrc \
     && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/node" /usr/local/bin/node' \
     && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' \
     && /bin/bash -c 'source /home/embold/.bashrc && sudo /bin/ln -s "/home/embold/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
-    && npm install -g yarn n \
-    # add fzf for smarter CD
-    & sudo apt-get update \
-    && sudo apt-get install fzf bat -y \
-    && sudo rm -rf /var/lib/apt/lists/*
+    && npm install -g yarn n
