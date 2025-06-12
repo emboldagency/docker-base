@@ -17,6 +17,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 <!-- ### Fixed -->
 <!-- ### Security -->
 
+## [v1.3.1](https://github.com/emboldagency/docker-base/tree/v1.3.1) - 2025-06-12
+
+### Fixed
+
+- Syntax error in configure script causing error during workspace startup
+
+[Full Changelog](https://github.com/emboldagency/docker-base/compare/v1.3.0...v1.3.1)
+
 ## [v1.3.0](https://github.com/emboldagency/docker-base/tree/v1.3.0) - 2025-06-11
 
 ### Added
