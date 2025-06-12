@@ -32,10 +32,10 @@ sudo mkdir /.zshrc-initial &&
     sudo chown embold:embold /.zshrc-initial &&
     git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
 
-mkdir -p $GEM_HOME \
-    && gem install colorls /coder/pulsar-*.gem --conservative
+mkdir -p $GEM_HOME &&
+    gem install colorls /coder/pulsar-*.gem --conservative
 
-if [ -z $DOTFILES_URL]; then
+if [ -z "$DOTFILES_URL" ]; then
     # Print a deprecation warning letting the user know that they should use the coder param
     echo "Warning: DOTFILES_URL is not set. Fetching from the staging API is deprecated. Please fill in the dotfiles_url coder parameter instead."
     # Get dotfiles repo
