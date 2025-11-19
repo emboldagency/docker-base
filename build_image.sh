@@ -68,7 +68,8 @@ fi
 
 # --- Tag Generation ---
 # Define components
-readonly REGISTRY_USER="emboldcreative"
+readonly REGISTRY_HOST="ghcr.io"
+readonly REGISTRY_USER="emboldagency"
 readonly IMAGE_NAME="base"
 
 # Define version suffixes
@@ -76,8 +77,8 @@ readonly VERSION_SUFFIX="ubuntu${UBUNTU_VERSION}"
 readonly RELEASE_SUFFIX="${VERSION_SUFFIX}-release${TEMPLATE_VERSION}"
 
 # Define final, full image tags
-readonly GENERAL_TAG="${REGISTRY_USER}/${IMAGE_NAME}:${VERSION_SUFFIX}"
-readonly RELEASE_TAG="${REGISTRY_USER}/${IMAGE_NAME}:${RELEASE_SUFFIX}"
+readonly GENERAL_TAG="${REGISTRY_HOST}/${REGISTRY_USER}/${IMAGE_NAME}:${VERSION_SUFFIX}"
+readonly RELEASE_TAG="${REGISTRY_HOST}/${REGISTRY_USER}/${IMAGE_NAME}:${RELEASE_SUFFIX}"
 
 # Build the image
 DOCKER_BUILDKIT=1 docker build -t "$RELEASE_TAG" \
@@ -91,21 +92,152 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-# Add additional tags for easier reference
-docker tag "$RELEASE_TAG" "$GENERAL_TAG"
+RELEASE_MINOR_TAG="${REGISTRY_HOST}/${REGISTRY_USER}/${IMAGE_NAME}:${VERSION_SUFFIX}-release${TEMPLATE_VERSION%.*}"
+
+should_tag_minor=false
+should_tag_general=false
+
+if [ "${SKIP_REGISTRY_CHECK:-0}" = "1" ]; then
+	should_tag_minor=false
+	should_tag_general=true
+else
+	if [ "$REGISTRY_HOST" = "ghcr.io" ]; then
+		echo_highlight "Checking remote tags on GHCR to determine additional tags..."
+		ghcr_url="https://ghcr.io/v2/${REGISTRY_USER}/${IMAGE_NAME}/tags/list?n=100"
+		if [ -n "${GHCR_TOKEN:-}" ]; then
+			auth_header="-u ${GHCR_USER:-$REGISTRY_USER}:${GHCR_TOKEN}"
+		elif [ -f "${HOME}/.gh-pat.txt" ]; then
+			tmpuser=${GHCR_USER:-$REGISTRY_USER}
+			tmpfile=$(mktemp)
+			cat "${HOME}/.gh-pat.txt" > "$tmpfile"
+			auth_header="-u ${tmpuser}:$(cat $tmpfile)"
+			rm -f "$tmpfile"
+		else
+			auth_header=""
+		fi
+		if [ -n "$auth_header" ]; then
+			remote_tags_json=$(eval curl -s $auth_header "${ghcr_url}") || remote_tags_json=""
+		else
+			remote_tags_json=$(curl -s "${ghcr_url}") || remote_tags_json=""
+		fi
+		if [ -n "$remote_tags_json" ]; then
+			if command -v jq >/dev/null 2>&1; then
+				remote_tags=$(printf "%s" "$remote_tags_json" | jq -r '.tags[]?')
+			else
+				echo_highlight "jq not found; cannot parse GHCR tags. Install jq or set SKIP_REGISTRY_CHECK=1 to skip remote checks."
+				remote_tags=""
+			fi
+		else
+			remote_tags=""
+		fi
+	else
+		# No remote check for non-GHCR registries in this helper
+		remote_tags=""
+	fi
+fi
+
+if [ -z "$remote_tags" ]; then
+	echo_highlight "Could not fetch remote tags — skipping remote-based tagging."
+	should_tag_general=false
+	should_tag_minor=false
+else
+	prefix="${VERSION_SUFFIX}-release"
+	release_versions=()
+	while read -r t; do
+		case "$t" in
+			${prefix}*)
+				ver=${t#${prefix}}
+				ver=${ver#v}
+				release_versions+=("$ver")
+				;;
+		esac
+	done <<<"$remote_tags"
+
+	if [ ${#release_versions[@]} -eq 0 ]; then
+		latest_overall=""
+	else
+		latest_overall=$(printf "%s\n" "${release_versions[@]}" | sort -V | tail -n1)
+	fi
+
+	minor_prefix="${TEMPLATE_VERSION%.*}"
+	filtered_versions=()
+	for v in "${release_versions[@]}"; do
+		case "$v" in
+			${minor_prefix}.*|${minor_prefix})
+				filtered_versions+=("$v")
+				;;
+		esac
+	done
+	if [ ${#filtered_versions[@]} -eq 0 ]; then
+		latest_minor=""
+	else
+		latest_minor=$(printf "%s\n" "${filtered_versions[@]}" | sort -V | tail -n1)
+	fi
+
+	if [ -n "$latest_minor" ] && [ "$TEMPLATE_VERSION" = "$latest_minor" ]; then
+		should_tag_minor=true
+	fi
+	if [ -n "$latest_overall" ] && [ "$TEMPLATE_VERSION" = "$latest_overall" ]; then
+		should_tag_general=true
+	fi
+fi
+
+# Always tag the release locally
+docker tag "$RELEASE_TAG" "$RELEASE_TAG" || true
+
+# Add minor/general tags if decided
+if [ "$should_tag_minor" = true ]; then
+	docker tag "$RELEASE_TAG" "$RELEASE_MINOR_TAG"
+	echo "Also tagging minor umbrella: $RELEASE_MINOR_TAG"
+fi
+if [ "$should_tag_general" = true ]; then
+	docker tag "$RELEASE_TAG" "$GENERAL_TAG"
+	echo "Also tagging general version: $GENERAL_TAG"
+fi
 
 echo "Image built with tags:"
 echo "  $RELEASE_TAG"
-echo "  $GENERAL_TAG"
-echo
-echo "To push all tags, run:"
-echo_highlight "  docker push $RELEASE_TAG"
-echo_highlight "  docker push $GENERAL_TAG"
+if [ "$should_tag_minor" = true ]; then
+	echo "  $RELEASE_MINOR_TAG"
+fi
+if [ "$should_tag_general" = true ]; then
+	echo "  $GENERAL_TAG"
+fi
 
-read -rp "Do you want to push all tags now? [y/N]: " push_answer
+echo
+echo "To push tags, run:" 
+echo_highlight "  docker push $RELEASE_TAG"
+if [ "$should_tag_minor" = true ]; then
+	echo_highlight "  docker push $RELEASE_MINOR_TAG"
+fi
+if [ "$should_tag_general" = true ]; then
+	echo_highlight "  docker push $GENERAL_TAG"
+fi
+
+docker_login_for_push() {
+	if [ "$REGISTRY_HOST" = "ghcr.io" ]; then
+		if [ -n "${GHCR_TOKEN:-}" ]; then
+			echo "Logging in to GHCR as ${GHCR_USER:-$REGISTRY_USER}..."
+			echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER:-$REGISTRY_USER}" --password-stdin || echo_highlight "GHCR login failed"
+		elif [ -f "${HOME}/.gh-pat.txt" ]; then
+			echo "Using ${HOME}/.gh-pat.txt to login to GHCR as ${GHCR_USER:-$REGISTRY_USER}..."
+			cat "${HOME}/.gh-pat.txt" | docker login ghcr.io -u "${GHCR_USER:-$REGISTRY_USER}" --password-stdin || echo_highlight "GHCR login failed"
+		else
+			echo_highlight "No GHCR token found in GHCR_TOKEN or ~/.gh-pat.txt — pushing will likely fail unless you are already logged in."
+		fi
+	fi
+}
+
+read -rp "Do you want to push the tags decided above now? [y/N]: " push_answer
 if [[ "$push_answer" =~ ^[Yy]$ ]]; then
-	echo "Pushing all tags..."
+	docker_login_for_push
+	echo "Pushing tags..."
 	docker push "$RELEASE_TAG"
-	docker push "$GENERAL_TAG"
+	if [ "$should_tag_minor" = true ]; then
+		docker push "$RELEASE_MINOR_TAG"
+	fi
+	if [ "$should_tag_general" = true ]; then
+		docker push "$GENERAL_TAG"
+	fi
 	echo "All tags pushed successfully!"
 fi
