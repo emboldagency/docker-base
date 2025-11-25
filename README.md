@@ -21,7 +21,7 @@ export UBUNTU_VERSION=24.04
 Build the image
 
 ```bash
-docker build -t ghcr.io/emboldagency/base:ubuntu${UBUNTU_VERSION} --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} .
+docker build -t ghcr.io/emboldagency/docker-base:ubuntu${UBUNTU_VERSION} --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} .
 ```
 
 If you are pushing to GHCR, authenticate first.
