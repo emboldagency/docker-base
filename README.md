@@ -12,13 +12,31 @@ New tags will be pushed for each of the versions specified in the [docker-build 
 
 ## Manual Builds
 
+Set the base image version
+
 ```bash
-# Set the base image version
-export UBUNTU_VERSION=22.04
+export UBUNTU_VERSION=24.04
+```
 
-# Build the image
-docker build -t emboldcreative/base:ubuntu${UBUNTU_VERSION} --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} .
+Build the image
 
-# Push the image to the registry
-docker push emboldcreative/base:ubuntu${UBUNTU_VERSION}
+```bash
+docker build -t ghcr.io/emboldagency/base:ubuntu${UBUNTU_VERSION} --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} .
+```
+
+If you are pushing to GHCR, authenticate first.
+
+- The username is the owner of the PAT.
+- The password is in Bitwarden on the `GitHub (Alert/Staging)` entry as `GHCR Token (Write)`.
+
+```bash
+export GHCR_USER="emboldagency"
+export GHCR_TOKEN="<your-ghcr-pat-with-packages-write>"
+echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+```
+
+Push the image to the registry
+
+```bash
+docker push ghcr.io/emboldagency/base:ubuntu${UBUNTU_VERSION}
 ```

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Ensure /coder/home/.local/bin is in PATH (for image tools: fnm, zoxide, oh-my-posh, etc.)
+# User ~/.local/bin takes precedence over image defaults
+if [[ ":$PATH:" != *":/coder/home/.local/bin:"* ]]; then
+	export PATH="$HOME/.local/bin:/coder/home/.local/bin:$PATH"
+fi
+
 if [ ! -d "/home/embold/.ssh" ]; then
     rsync -a --ignore-existing /coder/conf/.ssh /home/embold
     # Save GitHub's current keys from the API
