@@ -6,6 +6,12 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+"
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      skip-jobs:
+        description: "Space-separated list of jobs to skip"
+        required: false
+        default: ""
 
 env:
   REGISTRY: ghcr.io
