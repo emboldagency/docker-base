@@ -188,8 +188,9 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /coder/home/.bashrc \
 	&& /bin/bash -c "source /coder/home/.bashrc \
 	&& fnm install ${NODE_VERSION} \
 	&& fnm alias default ${NODE_VERSION} \
-	&& npm install -g yarn n" \
-	# Symlink node binaries so they are available globally
+	&& npm install -g yarn n \
+	&& npm install -g --prefix /coder/home/.local --unsafe-perm=true browser-sync" \
+	# Symlink node binaries so they are available globally for future shells
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/node" /usr/local/bin/node' \
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' \
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
@@ -199,5 +200,4 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /coder/home/.bashrc \
 	&& git clone --depth=1 https://github.com/mattmc3/antidote.git "/coder/home/.local/share/antidote" || true \
 	&& mkdir -p "/coder/home/.local/bin" "/coder/home/.cache/oh-my-posh/themes" \
 	&& curl -s https://ohmyposh.dev/install.sh | bash -s -- -d "/coder/home/.local/bin" -t "/coder/home/.cache/oh-my-posh/themes" \
-	&& sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh)" -- --bin-dir /coder/home/.local/bin --man-dir /coder/home/.local/share/man --sudo "" >/dev/null 2>&1 || true \
-	&& npm install -g --prefix /coder/home/.local --unsafe-perm=true browser-sync || true
+	&& sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh)" -- --bin-dir /coder/home/.local/bin --man-dir /coder/home/.local/share/man --sudo "" >/dev/null 2>&1 || true
