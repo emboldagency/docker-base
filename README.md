@@ -38,5 +38,5 @@ echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 Push the image to the registry
 
 ```bash
-docker push ghcr.io/emboldagency/base:ubuntu${UBUNTU_VERSION}
+docker push ghcr.io/emboldagency/docker-base:ubuntu${UBUNTU_VERSION}
 ```
