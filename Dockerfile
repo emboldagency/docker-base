@@ -182,15 +182,17 @@ RUN echo 'eval "$(fnm env --shell bash)"' >> /coder/home/.bashrc \
 	&& curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/coder/home/.fnm" --skip-shell \
 	&& sudo ln -s /coder/home/.fnm/fnm /usr/local/bin/ \
 	&& sudo chmod +x /usr/local/bin/fnm \
-	# Smoke test for fnm
 	&& fnm -V \
-	&& /bin/bash -c "source /coder/home/.bashrc && fnm install ${NODE_VERSION}" \
-	&& /bin/bash -c "source /coder/home/.bashrc && fnm alias default ${NODE_VERSION}" \
+	# We combine install, alias, AND npm global installs into ONE bash execution
+	# This ensures 'npm' is found because .bashrc is sourced in this specific session
+	&& /bin/bash -c "source /coder/home/.bashrc \
+	&& fnm install ${NODE_VERSION} \
+	&& fnm alias default ${NODE_VERSION} \
+	&& npm install -g yarn n" \
 	# Symlink node binaries so they are available globally
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/node" /usr/local/bin/node' \
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' \
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
-	&& npm install -g yarn n \
 	# ZSH & Themes
 	&& sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
 	&& mkdir -p "/coder/home/.local/share" \
