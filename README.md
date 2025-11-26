@@ -12,6 +12,16 @@ New tags will be pushed for each of the versions specified in the [docker-build 
 
 ## Manual Builds
 
+### Using the Build Script (Recommended)
+
+For local development and testing, use the included helper script. It prompts for the Ubuntu version and optional tag suffix, then runs the build with the correct arguments.
+
+```bash
+./build_image.sh
+```
+
+### Using Docker CLI
+
 Set the base image version
 
 ```bash
