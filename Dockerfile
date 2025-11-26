@@ -153,35 +153,56 @@ COPY coder /coder
 RUN ln -s /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
 	&& chown -R embold:embold /coder \
 	&& chmod 774 /coder \
-	&& chown -R embold:embold /coder/home
+	&& chown -R embold:embold /coder
 
 # -----------------------------------------------------------------------------
 # User-Level Installs (Node, FNM, ZSH Themes)
 # -----------------------------------------------------------------------------
 USER embold
 
+# CRITICAL: Trick installers into thinking /coder/home is the home directory.
+# This ensures .zshrc, .fnm, and .oh-my-zsh end up in the staging area.
+ENV HOME=/coder/home
+
 SHELL [ "bash", "-c" ]
 
-RUN echo 'eval "$(fnm env --shell bash)"' >> /coder/home/.bashrc \
+# Ensure the config files/directories exist so we can append to them
+RUN mkdir -p /coder/home/.local/bin /coder/home/.local/share \
+	&& touch /coder/home/.bashrc /coder/home/.zshrc \
+	# --- FNM & Node ---
 	&& curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/coder/home/.fnm" --skip-shell \
+	&& echo 'eval "$(fnm env --shell bash)"' >> /coder/home/.bashrc \
+	&& echo 'eval "$(fnm env --shell zsh)"' >> /coder/home/.zshrc \
+	# Link FNM to global path so it's accessible without loading shell configs
 	&& sudo ln -s /coder/home/.fnm/fnm /usr/local/bin/ \
 	&& sudo chmod +x /usr/local/bin/fnm \
-	&& fnm -V \
-	# We combine install, alias, AND npm global installs into ONE bash execution
-	# This ensures 'npm' is found because .bashrc is sourced in this specific session
+	# Install Node & Global Packages
+	# We source the *staged* bashrc to load FNM
 	&& /bin/bash -c "source /coder/home/.bashrc \
 	&& fnm install ${NODE_VERSION} \
 	&& fnm alias default ${NODE_VERSION} \
 	&& npm install -g yarn n \
 	&& npm install -g --prefix /coder/home/.local --unsafe-perm=true browser-sync" \
-	# Symlink node binaries so they are available globally for future shells
+	# Symlink node binaries for global access
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/node" /usr/local/bin/node' \
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/npm" /usr/local/bin/npm' \
 	&& /bin/bash -c 'source /coder/home/.bashrc && sudo ln -s "/coder/home/.fnm/aliases/default/bin/npx" /usr/local/bin/npx' \
-	# ZSH & Themes
+	# --- ZSH & Themes ---
 	&& sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
-	&& mkdir -p "/coder/home/.local/share" \
 	&& git clone --depth=1 https://github.com/mattmc3/antidote.git "/coder/home/.local/share/antidote" || true \
-	&& mkdir -p "/coder/home/.local/bin" "/coder/home/.cache/oh-my-posh/themes" \
+	&& mkdir -p "/coder/home/.cache/oh-my-posh/themes" \
 	&& curl -s https://ohmyposh.dev/install.sh | bash -s -- -d "/coder/home/.local/bin" -t "/coder/home/.cache/oh-my-posh/themes" \
-	&& sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh)" -- --bin-dir /coder/home/.local/bin --man-dir /coder/home/.local/share/man --sudo "" >/dev/null 2>&1 || true
+	&& sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh)" -- --bin-dir /coder/home/.local/bin --man-dir /coder/home/.local/share/man --sudo "" >/dev/null 2>&1 || true \
+	# --- LazyGit ---
+	# FIX: Switch to /tmp so 'embold' user can write the tarball
+	&& cd /tmp \
+	&& LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*') \
+	&& curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" \
+	&& sudo tar xf lazygit.tar.gz lazygit \
+	&& sudo install lazygit /usr/local/bin \
+	&& rm lazygit.tar.gz lazygit \
+	# --- BrowserSync Config ---
+	&& git clone https://github.com/emboldagency/backend-browsersync.git /coder/home/browsersync
+
+# Reset HOME
+ENV HOME=/home/embold
