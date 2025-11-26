@@ -1,5 +1,5 @@
-ARG UBUNTU_VERSION=24.04
-ARG NODE_VERSION=22.19.0
+ARG UBUNTU_VERSION=24.04 \
+	NODE_VERSION=22.19.0
 
 FROM ubuntu:${UBUNTU_VERSION}
 
@@ -12,10 +12,6 @@ ENV DATE_TIMEZONE=UTC \
 	LANGUAGE=C.UTF-8 \
 	LC_ALL=C.UTF-8 \
 	TZ=UTC \
-	# Ruby
-	BUNDLE_DISABLE_SHARED_GEMS=1 \
-	BUNDLE_SILENCE_ROOT_WARNING=1 \
-	PULSAR_CONF_REPO="git@github.com:emboldagency/pulsar.git" \
 	# Add non-interactive frontend to prevent apt hanging
 	DEBIAN_FRONTEND=noninteractive
 
@@ -130,18 +126,6 @@ RUN apt-get update \
 	&& rm -f google-chrome.deb \
 	# Cleanup
 	&& rm -rf /var/lib/apt/lists/* /usr/share/man/* /usr/share/doc/*
-
-# -----------------------------------------------------------------------------
-# Ruby
-# We do this before copying local files so it stays cached.
-# -----------------------------------------------------------------------------
-# Prepare directory for ruby-build (temp)
-RUN mkdir -p /tmp/ruby-build \
-	&& git clone https://github.com/rbenv/ruby-build.git /tmp/ruby-build \
-	&& PREFIX=/usr/local /tmp/ruby-build/install.sh \
-	&& rm -rf /tmp/ruby-build \
-	&& mkdir -p /usr/local/etc \
-	&& { echo 'install: --no-document'; echo 'update: --no-document'; } >> /usr/local/etc/gemrc
 
 # -----------------------------------------------------------------------------
 # Users & Shells
