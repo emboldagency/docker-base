@@ -1,6 +1,8 @@
 # docker-base
 
-Coder v2 Ubuntu docker base image
+![Calendar Semantic Versioning](https://embold.net/api/github/badge/calsemver.php?repo=docker-base) [![docker-build.yml](https://embold.net/api/github/badge/workflow-status.php?repo=docker-base&workflow=docker-build.yml)](https://github.com/emboldagency/docker-base/actions/workflows/docker-build.yml)
+
+Coder Ubuntu Docker base image
 
 # Build Process
 
@@ -31,7 +33,11 @@ export UBUNTU_VERSION=24.04
 Build the image
 
 ```bash
-docker build -t ghcr.io/emboldagency/docker-base:ubuntu${UBUNTU_VERSION} --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} .
+docker buildx build \
+  --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} \
+  -t ghcr.io/emboldagency/docker-base:ubuntu${UBUNTU_VERSION} \
+  --load \
+  .
 ```
 
 If you are pushing to GHCR, authenticate first.
