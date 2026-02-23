@@ -1,0 +1,95 @@
+ARG ALPINE_VERSION=3.20
+ARG NODE_VERSION=22.19.0
+
+FROM alpine:${ALPINE_VERSION}
+
+# Re-declare ARGs for this stage
+ARG ALPINE_VERSION
+ARG NODE_VERSION
+
+# Set standard environment variables
+ENV LANG=C.UTF-8 \
+	LC_ALL=C.UTF-8 \
+	TZ=UTC \
+	# Antidote plugin home
+	ANTIDOTE_HOME=/home/embold/.cache/antidote \
+	# Bundler
+	BUNDLE_DISABLE_SHARED_GEMS=1 \
+	BUNDLE_SILENCE_ROOT_WARNING=1 \
+	# System path
+	PATH=/home/embold/.local/bin:/opt/embold/bin:/usr/local/bin:$PATH
+
+# -----------------------------------------------------------------------------
+# System Core & Build Essentials
+# -----------------------------------------------------------------------------
+RUN apk update \
+	&& apk add --no-cache \
+	ca-certificates \
+	curl \
+	gnupg \
+	build-base \
+	autoconf \
+	bison \
+	openssl-dev \
+	yaml-dev \
+	readline-dev \
+	zlib-dev \
+	libffi-dev \
+	sqlite-dev \
+	rsync \
+	socat \
+	openssh \
+	git \
+	vim \
+	zsh \
+	bash \
+	sudo \
+	tzdata \
+	musl-locales \
+	gcompat \
+	# Global Dev Tooling
+	bat docker-cli fd fzf htop jq ncdu ripgrep stow tmux tree unzip wget \
+	github-cli eza lazygit zoxide
+
+# -----------------------------------------------------------------------------
+# Oh My Posh & Themes (Musl compatible)
+# -----------------------------------------------------------------------------
+RUN curl -s https://ohmyposh.dev/install.sh | bash -s -- -d /usr/local/bin \
+	&& mkdir -p /opt/oh-my-posh/themes \
+	&& wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/themes.zip -O /opt/oh-my-posh/themes/themes.zip \
+	&& unzip /opt/oh-my-posh/themes/themes.zip -d /opt/oh-my-posh/themes \
+	&& rm /opt/oh-my-posh/themes/themes.zip \
+	&& chmod -R 755 /opt/oh-my-posh/themes
+
+# -----------------------------------------------------------------------------
+# Global Runtime & Frameworks (Node/ZSH/Antidote)
+# -----------------------------------------------------------------------------
+RUN apk add --no-cache nodejs npm \
+	# Oh My Zsh & Antidote
+	&& git clone https://github.com/ohmyzsh/ohmyzsh.git /opt/oh-my-zsh \
+	&& git clone --depth=1 https://github.com/mattmc3/antidote.git /opt/antidote \
+	# BrowserSync Global
+	&& npm install -g browser-sync \
+	&& git clone https://github.com/emboldagency/backend-browsersync.git /opt/embold/browsersync
+
+# -----------------------------------------------------------------------------
+# Users & Workspace Setup
+# -----------------------------------------------------------------------------
+COPY --chown=embold:embold coder /coder
+
+RUN adduser -D -s /bin/zsh embold \
+	&& echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/embold \
+	# SSH Setup
+	&& mkdir -p /etc/ssh/sshd_config.d /etc/ssh/ssh_config.d \
+	&& cp /coder/conf/sshd_config /etc/ssh/sshd_config.d/embold.conf \
+	&& cp /coder/conf/.ssh/config /etc/ssh/ssh_config.d/embold.conf \
+	# Permissions
+	&& mkdir -p /opt/embold/bin \
+	&& chown -R embold:embold /opt/embold /opt/oh-my-zsh /opt/antidote /opt/oh-my-posh /coder
+
+USER embold
+WORKDIR /home/embold
+
+RUN mkdir -p /home/embold/.local/bin /home/embold/.config /home/embold/.cache
+
+CMD ["/bin/zsh"]
