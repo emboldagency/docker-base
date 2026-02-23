@@ -4,6 +4,20 @@ sudo mkdir /.zshrc-initial &&
     sudo chown embold:embold /.zshrc-initial &&
     git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
 
+# Execute any additional configuration scripts found in /coder/scripts
+# looking for files starting with 'configure-'
+if [ -d "/coder/scripts" ]; then
+    for script in /coder/scripts/configure-*; do
+        if [ -f "$script" ] && [ -x "$script" ]; then
+            echo "Running extension script: $(basename "$script")"
+            "$script"
+        elif [ -f "$script" ]; then
+            echo "Running extension script (via bash): $(basename "$script")"
+            /bin/bash "$script"
+        fi
+    done
+fi
+
 # Who are we? ^_~
 embold=H4sIAAAAAAAAA52SMQ7DMAhFd5+CqWPv0itkyFDJErbk+h+/wcTGtM7Q/iUKmCf4QLRWNW0XT5YKV4k660cggJtFdmAAifgPIJCBJ0Q5vwQPA6YBtH6TpUXJZYIAlHkiZ6BN/Piw4BM4qAGdpMzO8x5G61TLvzvs32DNdTDy5GF/bsuZ/j1QY6F11hZjzAXQVy2B6uIBlGCzjs6RCx3MeeJUnfWjWpMuw+IhZQWRjb27iuiXmegSeGz5PvZb5AQLUcl7G2XjGNmfIEde3V7lWLfzZXgDYVxqC3sDAAA=
 base64 -d <<<"$embold" | gunzip
