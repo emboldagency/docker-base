@@ -43,14 +43,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # 1. SPECIFIC TAGS (Always generate these for every matrix job)
-            type=raw,value=ubuntu${{ matrix.ubuntu_version }}-release{{tag}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=raw,value=ubuntu${{ matrix.ubuntu_version }}-latest
-
-            # 2. GLOBAL TAGS (Only generate these for the primary version)
-            # The 'enable' logic ensures only the 24.04 job updates 'latest' and the specific version
-            type=match,pattern=v(.*),group=1,enable=${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION }}
-            type=raw,value=latest,enable=${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && startsWith(github.ref, 'refs/tags/v') }}
+            # 1. VERSIONED TAGS (e.g., ubuntu24.04-2026.02.23.0)
+            type=match,pattern=v(.*),group=1,prefix=ubuntu${{ matrix.ubuntu_version }}-
+            
+            # 2. LATEST TAGS (e.g., ubuntu24.04)
+            type=raw,value=ubuntu${{ matrix.ubuntu_version }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
