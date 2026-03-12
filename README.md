@@ -1,6 +1,6 @@
 # docker-base
 
-![Calendar Semantic Versioning](https://embold.net/api/github/badge/calsemver.php?repo=docker-base) [![docker-build.yml](https://embold.net/api/github/badge/workflow-status.php?repo=docker-base&workflow=docker-build.yml)](https://github.com/emboldagency/docker-base/actions/workflows/docker-build.yml)
+[![Calendar Semantic Versioning](https://img.shields.io/github/v/release/emboldagency/docker-base?label=calendar%20semver)](https://github.com/emboldagency/docker-base/releases)
 
 Coder Ubuntu Docker base image
 
