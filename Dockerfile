@@ -1,11 +1,15 @@
 ARG UBUNTU_VERSION=24.04
 ARG NODE_VERSION=22.19.0
+ARG EMBOLD_UID=1001
+ARG EMBOLD_GID=1001
 
 FROM ubuntu:${UBUNTU_VERSION}
 
 # Re-declare ARGs for this stage
 ARG UBUNTU_VERSION
 ARG NODE_VERSION
+ARG EMBOLD_UID
+ARG EMBOLD_GID
 
 # Set standard environment variables
 ENV LANG=C.UTF-8 \
@@ -115,9 +119,10 @@ RUN export FNM_DIR=/opt/fnm \
 # -----------------------------------------------------------------------------
 # Users & Workspace Setup
 # -----------------------------------------------------------------------------
-COPY --chown=embold:embold coder /coder
+COPY coder /coder
 
-RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold \
+RUN groupadd --gid "${EMBOLD_GID}" embold \
+	&& useradd --uid "${EMBOLD_UID}" --gid "${EMBOLD_GID}" --create-home --shell /bin/zsh embold \
 	&& echo "embold ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/embold \
 	# SSH Setup
 	&& mkdir -p /etc/ssh/sshd_config.d /etc/ssh/ssh_config.d \
@@ -125,7 +130,7 @@ RUN adduser --gecos '' --disabled-password --shell /bin/zsh embold \
 	&& cp /coder/conf/.ssh/config /etc/ssh/ssh_config.d/embold.conf \
 	# Permissions
 	&& mkdir -p /opt/embold/bin \
-	&& chown -R embold:embold /opt/fnm /opt/embold /opt/oh-my-zsh /opt/antidote /opt/oh-my-posh /coder
+	&& chown -R embold:embold /opt/fnm /opt/embold /opt/oh-my-zsh /opt/antidote /opt/oh-my-posh /coder /home/embold
 
 USER embold
 WORKDIR /home/embold
