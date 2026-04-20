@@ -47,6 +47,8 @@ RUN apt-get update \
 	libyaml-dev \
 	libreadline-dev \
 	zlib1g-dev \
+	libnspr4 \
+	libnss3 \
 	libffi-dev \
 	libsqlite3-dev \
 	rsync \
