@@ -34,33 +34,33 @@ ENV LANG=C.UTF-8 \
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 	apt-transport-https \
-	ca-certificates \
-	curl \
-	gnupg \
-	gpg-agent \
-	software-properties-common \
-	lsb-release \
-	build-essential \
 	autoconf \
 	bison \
-	libssl-dev \
-	libyaml-dev \
-	libreadline-dev \
-	zlib1g-dev \
+	build-essential \
+	ca-certificates \
+	curl \
+	git \
+	gnupg \
+	gpg-agent \
+	libffi-dev \
 	libnspr4 \
 	libnss3 \
-	libffi-dev \
+	libreadline-dev \
 	libsqlite3-dev \
+	libssl-dev \
+	libyaml-dev \
+	locales \
+	lsb-release \
+	openssh-server \
 	rsync \
 	socat \
+	software-properties-common \
 	ssh \
-	openssh-server \
-	git \
-	vim \
-	zsh \
 	sudo \
-	locales \
 	tzdata \
+	vim \
+	zlib1g-dev \
+	zsh \
 	&& add-apt-repository -y ppa:git-core/ppa \
 	&& apt-get update \
 	&& apt-get install -y --no-install-recommends git \

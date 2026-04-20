@@ -24,29 +24,31 @@ ENV LANG=C.UTF-8 \
 # -----------------------------------------------------------------------------
 RUN apk update \
 	&& apk add --no-cache \
+	autoconf \
+	bash \
+	bison \
+	build-base \
 	ca-certificates \
 	curl \
+	gcompat \
+	git \
 	gnupg \
-	build-base \
-	autoconf \
-	bison \
-	openssl-dev \
-	yaml-dev \
-	readline-dev \
-	zlib-dev \
 	libffi-dev \
-	sqlite-dev \
+	libnspr4 \
+	libnss3 \
+	musl-locales \
+	openssh \
+	openssl-dev \
+	readline-dev \
 	rsync \
 	socat \
-	openssh \
-	git \
-	vim \
-	zsh \
-	bash \
+	sqlite-dev \
 	sudo \
 	tzdata \
-	musl-locales \
-	gcompat \
+	vim \
+	yaml-dev \
+	zlib-dev \
+	zsh \
 	# Global Dev Tooling
 	bat docker-cli fd fzf htop jq ncdu ripgrep stow tmux tree unzip wget \
 	github-cli eza lazygit zoxide
