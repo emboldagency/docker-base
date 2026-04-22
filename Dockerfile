@@ -42,12 +42,23 @@ RUN apt-get update \
 	git \
 	gnupg \
 	gpg-agent \
+	libasound2t64 \
+	libatk-bridge2.0-0t64 \
+	libatk1.0-0t64 \
+	libatspi2.0-0t64 \
+	libcups2t64 \
 	libffi-dev \
+	libgbm1 \
 	libnspr4 \
 	libnss3 \
 	libreadline-dev \
 	libsqlite3-dev \
 	libssl-dev \
+	libxcomposite1 \
+	libxdamage1 \
+	libxfixes3 \
+	libxkbcommon0 \
+	libxrandr2 \
 	libyaml-dev \
 	locales \
 	lsb-release \

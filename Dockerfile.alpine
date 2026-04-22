@@ -24,19 +24,30 @@ ENV LANG=C.UTF-8 \
 # -----------------------------------------------------------------------------
 RUN apk update \
 	&& apk add --no-cache \
+	alsa-lib \
+	at-spi2-core \
 	autoconf \
 	bash \
 	bison \
 	build-base \
 	ca-certificates \
+	cups-libs \
 	curl \
 	gcompat \
 	git \
 	gnupg \
+	libatk-1.0 \
+	libatk-bridge-2.0 \
 	libffi-dev \
-	libnspr4 \
-	libnss3 \
+	libxcomposite \
+	libxdamage \
+	libxfixes \
+	libxkbcommon \
+	libxrandr \
+	mesa-gbm \
 	musl-locales \
+	nspr \
+	nss \
 	openssh \
 	openssl-dev \
 	readline-dev \
