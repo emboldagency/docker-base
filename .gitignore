@@ -1,0 +1,8 @@
+# Editor preferences
+.vscode
+
+# macOS metadata
+.DS_Store
+
+# Ignore workspace settings, which may contain user-specific configurations
+.claude
