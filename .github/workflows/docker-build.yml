@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         # You can add "22.04" here later without breaking 'latest'
-        ubuntu_version: ["24.04"]
+        ubuntu_version: ["24.04", "26.04"]
 
     steps:
       - name: Checkout repository

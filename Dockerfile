@@ -75,7 +75,7 @@ RUN apt-get update \
 	&& add-apt-repository -y ppa:git-core/ppa \
 	&& apt-get update \
 	&& apt-get install -y --no-install-recommends git \
-	&& localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
+	&& localedef -i en_US -c -f UTF-8 en_US.UTF-8 \
 	&& rm -rf /var/lib/apt/lists/*
 
 # -----------------------------------------------------------------------------
