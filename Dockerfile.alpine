@@ -61,7 +61,7 @@ RUN apk update \
 	zlib-dev \
 	zsh \
 	# Global Dev Tooling
-	bat docker-cli fd fzf htop jq ncdu ripgrep stow tmux tree unzip wget \
+	bat chezmoi docker-cli fd fzf htop jq ncdu ripgrep stow tmux tree unzip wget \
 	github-cli eza lazygit zoxide
 
 # -----------------------------------------------------------------------------

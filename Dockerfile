@@ -122,6 +122,8 @@ RUN apt-get update \
 	&& chmod -R 755 /opt/oh-my-posh/themes \
 	# Zoxide
 	&& curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash -s -- --bin-dir /usr/local/bin \
+	# Chezmoi
+	&& sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin \
 	&& rm -rf /var/lib/apt/lists/*
 
 # -----------------------------------------------------------------------------
