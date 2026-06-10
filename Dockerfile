@@ -1,5 +1,4 @@
 ARG UBUNTU_VERSION=24.04
-ARG NODE_VERSION=22.19.0
 ARG EMBOLD_UID=1001
 ARG EMBOLD_GID=1001
 
@@ -7,7 +6,6 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 # Re-declare ARGs for this stage
 ARG UBUNTU_VERSION
-ARG NODE_VERSION
 ARG EMBOLD_UID
 ARG EMBOLD_GID
 
@@ -141,7 +139,7 @@ RUN export FNM_DIR=/opt/fnm \
 	&& ln -s /opt/fnm/aliases/default/bin/npm /usr/local/bin/npm \
 	&& ln -s /opt/fnm/aliases/default/bin/npx /usr/local/bin/npx \
 	# Oh My Zsh & Antidote
-	&& git clone https://github.com/ohmyzsh/ohmyzsh.git /opt/oh-my-zsh \
+	&& git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git /opt/oh-my-zsh \
 	&& git clone --depth=1 https://github.com/mattmc3/antidote.git /opt/antidote \
 	# BrowserSync Global
 	&& npm install -g browser-sync \
