@@ -25,6 +25,6 @@ Images are tagged `ghcr.io/emboldagency/docker-base:ubuntu${UBUNTU_VERSION}` —
 1. Commit.
 2. `git tag vYYYY.MM.DD.N && git push --tags` — the `v`-prefixed tag triggers GHA, which builds and pushes the OS-tagged image to GHCR.
 
-The default branch is `master` (not `main`). The workflow's branch-push trigger is currently configured for `main`, so only tag pushes (and `workflow_dispatch`) reliably trigger CI.
+The default branch is `main` (aligned with `docker-php`/`docker-ruby`). The workflow triggers on pushes to `main` (warms the build cache + refreshes the floating `ubuntu${UBUNTU_VERSION}` tag) and on `v*` tag pushes (builds and pushes the versioned image), plus `workflow_dispatch`.
 
 See `README.md` for local build commands.
