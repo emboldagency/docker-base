@@ -62,7 +62,8 @@ jobs:
           build-args: |
             UBUNTU_VERSION=${{ matrix.ubuntu_version }}
           # CACHING UPDATE:
-          # When using a matrix, you must scope the cache key,
-          # otherwise the 24.04 build might try to read the 22.04 cache.
-          cache-from: type=gha,scope=build-${{ matrix.ubuntu_version }}
-          cache-to: type=gha,mode=max,scope=build-${{ matrix.ubuntu_version }}
+          # Registry-backed cache in GHCR (persistent, no GHA 10GB eviction).
+          # Scope the cache ref per matrix entry so the 24.04 build doesn't read 26.04's cache.
+          # image-manifest/oci-mediatypes are required for the cache manifest to be GHCR-compatible.
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-build-${{ matrix.ubuntu_version }}
+          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-build-${{ matrix.ubuntu_version }}
