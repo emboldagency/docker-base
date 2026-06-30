@@ -65,6 +65,17 @@ RUN apk update \
 # -----------------------------------------------------------------------------
 # Oh My Posh & Themes (Musl compatible)
 # -----------------------------------------------------------------------------
+# Vault CLI — pre-baked so the vault-github Coder module finds it already present
+# and skips its per-boot download. Otherwise the dotfiles startup script can hit
+# `command -v vault` before the module finishes installing it, losing the race and
+# falling back to "no dotfiles URL". Keep in sync with vault_cli_version in the templates.
+# Official HashiCorp binary is a static Go build, so it runs on musl (gcompat present).
+RUN VAULT_VERSION=2.0.2 \
+	&& case "$(apk --print-arch)" in x86_64) VAULT_ARCH=amd64 ;; aarch64) VAULT_ARCH=arm64 ;; *) echo "unsupported arch" && exit 1 ;; esac \
+	&& curl -fsSL "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_${VAULT_ARCH}.zip" -o /tmp/vault.zip \
+	&& unzip -o /tmp/vault.zip -d /usr/local/bin vault \
+	&& rm /tmp/vault.zip
+
 RUN curl -s https://ohmyposh.dev/install.sh | bash -s -- -d /usr/local/bin \
 	&& mkdir -p /opt/oh-my-posh/themes \
 	&& wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/themes.zip -O /opt/oh-my-posh/themes/themes.zip \

@@ -124,6 +124,14 @@ RUN apt-get update \
 	&& curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash -s -- --bin-dir /usr/local/bin \
 	# Chezmoi
 	&& sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin \
+	# Vault CLI — pre-baked so the vault-github Coder module finds it already present
+	# and skips its per-boot download. Otherwise the dotfiles startup script can hit
+	# `command -v vault` before the module finishes installing it, losing the race and
+	# falling back to "no dotfiles URL". Keep in sync with vault_cli_version in the templates.
+	&& VAULT_VERSION=2.0.2 \
+	&& curl -fsSL "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_$(dpkg --print-architecture).zip" -o /tmp/vault.zip \
+	&& unzip -o /tmp/vault.zip -d /usr/local/bin vault \
+	&& rm /tmp/vault.zip \
 	&& rm -rf /var/lib/apt/lists/*
 
 # -----------------------------------------------------------------------------
