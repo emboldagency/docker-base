@@ -81,20 +81,47 @@ RUN apt-get update \
 # -----------------------------------------------------------------------------
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
+	# shell / terminal UI
 	bat \
-	fd-find \
 	fzf \
 	htop \
-	iputils-ping \
-	jq \
 	less \
+	nano \
 	ncdu \
-	ripgrep \
-	stow \
 	tmux \
 	tree \
-	unzip \
+	# search & file navigation
+	fd-find \
+	ripgrep \
+	stow \
+	# data & text (json / csv / yaml / stats / sqlite)
+	datamash \
+	jq \
+	miller \
+	sqlite3 \
+	# network & http diagnostics
+	dnsutils \
+	httpie \
+	iproute2 \
+	iputils-ping \
+	lsof \
+	mtr-tiny \
+	netcat-openbsd \
+	traceroute \
 	wget \
+	# dev & scripting helpers
+	direnv \
+	file \
+	git-delta \
+	git-lfs \
+	grc \
+	moreutils \
+	parallel \
+	pv \
+	shellcheck \
+	# archives
+	unzip \
+	zip \
 	# GitHub CLI
 	&& curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
 	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
@@ -107,6 +134,12 @@ RUN apt-get update \
 	&& echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list \
 	&& apt-get update \
 	&& apt-get install -y --no-install-recommends docker-ce-cli eza gh \
+	# Enable git-lfs filters system-wide so LFS repos clone correctly for all users
+	&& git lfs install --system \
+	# Ubuntu ships these as batcat/fdfind; symlink the expected names so `bat`/`fd`
+	# resolve for scripts and non-interactive agent commands (shell aliases don't).
+	&& ln -sf "$(command -v batcat)" /usr/local/bin/bat \
+	&& ln -sf "$(command -v fdfind)" /usr/local/bin/fd \
 	# LazyGit
 	&& LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*') \
 	&& curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" \
@@ -122,6 +155,17 @@ RUN apt-get update \
 	&& chmod -R 755 /opt/oh-my-posh/themes \
 	# Zoxide
 	&& curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash -s -- --bin-dir /usr/local/bin \
+	# yq (mikefarah) — arch-aware static binary, not in apt
+	&& curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$(dpkg --print-architecture)" -o /usr/local/bin/yq \
+	&& chmod +x /usr/local/bin/yq \
+	# shfmt (mvdan) + gron (tomnomnom) — agent shell/JSON tooling, not in apt
+	&& SHFMT_VERSION=$(curl -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -Po '"tag_name": "\K[^"]*') \
+	&& curl -fsSL "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_$(dpkg --print-architecture)" -o /usr/local/bin/shfmt \
+	&& chmod +x /usr/local/bin/shfmt \
+	&& GRON_VERSION=$(curl -s https://api.github.com/repos/tomnomnom/gron/releases/latest | grep -Po '"tag_name": "\K[^"]*') \
+	&& curl -fsSL "https://github.com/tomnomnom/gron/releases/download/${GRON_VERSION}/gron-linux-$(dpkg --print-architecture)-${GRON_VERSION#v}.tgz" -o /tmp/gron.tgz \
+	&& tar -xzf /tmp/gron.tgz -C /usr/local/bin gron \
+	&& rm /tmp/gron.tgz \
 	# Chezmoi
 	&& sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin \
 	# Vault CLI — pre-baked so the vault-github Coder module finds it already present
