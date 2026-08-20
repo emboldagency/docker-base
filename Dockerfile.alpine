@@ -65,16 +65,35 @@ RUN apk update \
 # -----------------------------------------------------------------------------
 # Oh My Posh & Themes (Musl compatible)
 # -----------------------------------------------------------------------------
-# Vault CLI — pre-baked so the vault-github Coder module finds it already present
-# and skips its per-boot download. Otherwise the dotfiles startup script can hit
-# `command -v vault` before the module finishes installing it, losing the race and
-# falling back to "no dotfiles URL". Keep in sync with vault_cli_version in the templates.
-# Official HashiCorp binary is a static Go build, so it runs on musl (gcompat present).
+# Vault CLI
 RUN VAULT_VERSION=2.0.2 \
 	&& case "$(apk --print-arch)" in x86_64) VAULT_ARCH=amd64 ;; aarch64) VAULT_ARCH=arm64 ;; *) echo "unsupported arch" && exit 1 ;; esac \
 	&& curl -fsSL "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_${VAULT_ARCH}.zip" -o /tmp/vault.zip \
 	&& unzip -o /tmp/vault.zip -d /usr/local/bin vault \
 	&& rm /tmp/vault.zip
+
+# 1Password CLI
+RUN OP_VERSION=2.39.0 \
+	&& case "$(apk --print-arch)" in x86_64) OP_ARCH=amd64 ;; aarch64) OP_ARCH=arm64 ;; *) echo "unsupported arch" && exit 1 ;; esac \
+	&& curl -fsSL "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_${OP_ARCH}_v${OP_VERSION}.zip" -o /tmp/op.zip \
+	&& unzip -o /tmp/op.zip -d /usr/local/bin op \
+	&& rm /tmp/op.zip
+
+# rtk — token-reducing CLI proxy for coding agents.
+RUN RTK_VERSION=0.43.0 \
+	&& case "$(apk --print-arch)" in x86_64) RTK_TARGET=x86_64-unknown-linux-musl ;; aarch64) RTK_TARGET=aarch64-unknown-linux-gnu ;; *) echo "unsupported arch" && exit 1 ;; esac \
+	&& curl -fsSL "https://github.com/rtk-ai/rtk/releases/download/v${RTK_VERSION}/rtk-${RTK_TARGET}.tar.gz" -o /tmp/rtk.tar.gz \
+	&& curl -fsSL "https://github.com/rtk-ai/rtk/releases/download/v${RTK_VERSION}/checksums.txt" -o /tmp/rtk-checksums.txt \
+	&& RTK_EXPECTED=$(grep "rtk-${RTK_TARGET}.tar.gz\$" /tmp/rtk-checksums.txt | awk '{print $1}') \
+	&& [ -n "$RTK_EXPECTED" ] \
+	&& [ "$(sha256sum /tmp/rtk.tar.gz | awk '{print $1}')" = "$RTK_EXPECTED" ] \
+	&& tar -xzf /tmp/rtk.tar.gz -C /usr/local/bin rtk \
+	&& chmod +x /usr/local/bin/rtk \
+	&& rm /tmp/rtk.tar.gz /tmp/rtk-checksums.txt
+
+# uv — Python package/tool manager, needed by Python-based MCP servers.
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL=/usr/local/bin UV_NO_MODIFY_PATH=1 sh \
+	&& /usr/local/bin/uv --version
 
 RUN curl -s https://ohmyposh.dev/install.sh | bash -s -- -d /usr/local/bin \
 	&& mkdir -p /opt/oh-my-posh/themes \

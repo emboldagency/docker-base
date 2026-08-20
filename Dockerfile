@@ -163,6 +163,25 @@ RUN apt-get update \
 	&& curl -fsSL "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_$(dpkg --print-architecture).zip" -o /tmp/vault.zip \
 	&& unzip -o /tmp/vault.zip -d /usr/local/bin vault \
 	&& rm /tmp/vault.zip \
+	# 1Password CLI — same race-avoidance as Vault above, for the onepassword module. Keep in sync with op_cli_version in the templates.
+	&& OP_VERSION=2.39.0 \
+	&& curl -fsSL "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_$(dpkg --print-architecture)_v${OP_VERSION}.zip" -o /tmp/op.zip \
+	&& unzip -o /tmp/op.zip -d /usr/local/bin op \
+	&& rm /tmp/op.zip \
+	# rtk — token-reducing CLI proxy for coding agents.
+	&& RTK_VERSION=0.43.0 \
+	&& case "$(dpkg --print-architecture)" in amd64) RTK_TARGET=x86_64-unknown-linux-musl ;; arm64) RTK_TARGET=aarch64-unknown-linux-gnu ;; *) echo "unsupported arch" && exit 1 ;; esac \
+	&& curl -fsSL "https://github.com/rtk-ai/rtk/releases/download/v${RTK_VERSION}/rtk-${RTK_TARGET}.tar.gz" -o /tmp/rtk.tar.gz \
+	&& curl -fsSL "https://github.com/rtk-ai/rtk/releases/download/v${RTK_VERSION}/checksums.txt" -o /tmp/rtk-checksums.txt \
+	&& RTK_EXPECTED=$(grep "rtk-${RTK_TARGET}.tar.gz\$" /tmp/rtk-checksums.txt | awk '{print $1}') \
+	&& [ -n "$RTK_EXPECTED" ] \
+	&& [ "$(sha256sum /tmp/rtk.tar.gz | awk '{print $1}')" = "$RTK_EXPECTED" ] \
+	&& tar -xzf /tmp/rtk.tar.gz -C /usr/local/bin rtk \
+	&& chmod +x /usr/local/bin/rtk \
+	&& rm /tmp/rtk.tar.gz /tmp/rtk-checksums.txt \
+	# uv — Python package/tool manager, needed by Python-based MCP servers.
+	&& curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL=/usr/local/bin UV_NO_MODIFY_PATH=1 sh \
+	&& /usr/local/bin/uv --version \
 	&& rm -rf /var/lib/apt/lists/*
 
 # -----------------------------------------------------------------------------
