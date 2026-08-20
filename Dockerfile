@@ -189,7 +189,8 @@ RUN apt-get update \
 # -----------------------------------------------------------------------------
 RUN export FNM_DIR=/opt/fnm \
 	&& mkdir -p /opt/fnm \
-	&& curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/opt/fnm" --skip-shell \
+	# fnm.vercel.app has intermittent TLS failures; GitHub is the same script, more reliable.
+	&& curl -fsSL https://raw.githubusercontent.com/Schniz/fnm/master/.ci/install.sh | bash -s -- --install-dir "/opt/fnm" --skip-shell \
 	&& ln -s /opt/fnm/fnm /usr/local/bin/fnm \
 	&& fnm install --lts --corepack-enabled \
 	&& fnm alias lts-latest default \
