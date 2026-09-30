@@ -65,13 +65,6 @@ RUN apk update \
 # -----------------------------------------------------------------------------
 # Oh My Posh & Themes (Musl compatible)
 # -----------------------------------------------------------------------------
-# Vault CLI
-RUN VAULT_VERSION=2.0.2 \
-	&& case "$(apk --print-arch)" in x86_64) VAULT_ARCH=amd64 ;; aarch64) VAULT_ARCH=arm64 ;; *) echo "unsupported arch" && exit 1 ;; esac \
-	&& curl -fsSL "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_${VAULT_ARCH}.zip" -o /tmp/vault.zip \
-	&& unzip -o /tmp/vault.zip -d /usr/local/bin vault \
-	&& rm /tmp/vault.zip
-
 # 1Password CLI
 RUN OP_VERSION=2.39.0 \
 	&& case "$(apk --print-arch)" in x86_64) OP_ARCH=amd64 ;; aarch64) OP_ARCH=arm64 ;; *) echo "unsupported arch" && exit 1 ;; esac \
