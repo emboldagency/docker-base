@@ -66,7 +66,16 @@ RUN apt-get update \
 # -----------------------------------------------------------------------------
 # Global Dev Tooling (Binaries)
 # -----------------------------------------------------------------------------
-RUN apt-get update \
+# The "latest release" lookups below hit api.github.com, which allows 60 unauthenticated requests
+# an hour per IP, and parallel CI builds on shared runners exhaust that. CI passes GITHUB_TOKEN as
+# the github_token build secret (never stored in a layer). Local builds without it still work.
+RUN --mount=type=secret,id=github_token \
+	gh_latest_tag() { \
+		auth=""; \
+		[ -s /run/secrets/github_token ] && auth="Authorization: Bearer $(cat /run/secrets/github_token)"; \
+		curl -fsSL ${auth:+-H "$auth"} "https://api.github.com/repos/$1/releases/latest" | grep -Po '"tag_name": "\K[^"]*'; \
+	} \
+	&& apt-get update \
 	&& apt-get install -y --no-install-recommends \
 	# shell / terminal UI
 	bat \
@@ -128,8 +137,10 @@ RUN apt-get update \
 	&& ln -sf "$(command -v batcat)" /usr/local/bin/bat \
 	&& ln -sf "$(command -v fdfind)" /usr/local/bin/fd \
 	# LazyGit
-	&& LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*') \
-	&& curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" \
+	&& LAZYGIT_VERSION=$(gh_latest_tag jesseduffield/lazygit) \
+	&& LAZYGIT_VERSION=${LAZYGIT_VERSION#v} \
+	&& [ -n "$LAZYGIT_VERSION" ] \
+	&& curl -fLo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" \
 	&& tar xf lazygit.tar.gz lazygit \
 	&& install lazygit /usr/local/bin \
 	&& rm lazygit.tar.gz lazygit \
@@ -146,10 +157,12 @@ RUN apt-get update \
 	&& curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$(dpkg --print-architecture)" -o /usr/local/bin/yq \
 	&& chmod +x /usr/local/bin/yq \
 	# shfmt (mvdan) + gron (tomnomnom) — agent shell/JSON tooling, not in apt
-	&& SHFMT_VERSION=$(curl -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -Po '"tag_name": "\K[^"]*') \
+	&& SHFMT_VERSION=$(gh_latest_tag mvdan/sh) \
+	&& [ -n "$SHFMT_VERSION" ] \
 	&& curl -fsSL "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_$(dpkg --print-architecture)" -o /usr/local/bin/shfmt \
 	&& chmod +x /usr/local/bin/shfmt \
-	&& GRON_VERSION=$(curl -s https://api.github.com/repos/tomnomnom/gron/releases/latest | grep -Po '"tag_name": "\K[^"]*') \
+	&& GRON_VERSION=$(gh_latest_tag tomnomnom/gron) \
+	&& [ -n "$GRON_VERSION" ] \
 	&& curl -fsSL "https://github.com/tomnomnom/gron/releases/download/${GRON_VERSION}/gron-linux-$(dpkg --print-architecture)-${GRON_VERSION#v}.tgz" -o /tmp/gron.tgz \
 	&& tar -xzf /tmp/gron.tgz -C /usr/local/bin gron \
 	&& rm /tmp/gron.tgz \

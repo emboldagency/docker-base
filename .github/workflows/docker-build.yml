@@ -61,6 +61,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             UBUNTU_VERSION=${{ matrix.ubuntu_version }}
+          # Authenticates the Dockerfile's api.github.com release lookups (see the Dockerfile).
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
           # CACHING UPDATE:
           # Registry-backed cache in GHCR (persistent, no GHA 10GB eviction).
           # Scope the cache ref per matrix entry so the 24.04 build doesn't read 26.04's cache.
