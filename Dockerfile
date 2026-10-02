@@ -155,15 +155,7 @@ RUN apt-get update \
 	&& rm /tmp/gron.tgz \
 	# Chezmoi
 	&& sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin \
-	# Vault CLI — pre-baked so the vault-github Coder module finds it already present
-	# and skips its per-boot download. Otherwise the dotfiles startup script can hit
-	# `command -v vault` before the module finishes installing it, losing the race and
-	# falling back to "no dotfiles URL". Keep in sync with vault_cli_version in the templates.
-	&& VAULT_VERSION=2.0.2 \
-	&& curl -fsSL "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_$(dpkg --print-architecture).zip" -o /tmp/vault.zip \
-	&& unzip -o /tmp/vault.zip -d /usr/local/bin vault \
-	&& rm /tmp/vault.zip \
-	# 1Password CLI — same race-avoidance as Vault above, for the onepassword module. Keep in sync with op_cli_version in the templates.
+	# 1Password CLI, pre-baked so the onepassword Coder module finds it already present and skips its per-boot download. Keep in sync with op_cli_version in the templates.
 	&& OP_VERSION=2.39.0 \
 	&& curl -fsSL "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_$(dpkg --print-architecture)_v${OP_VERSION}.zip" -o /tmp/op.zip \
 	&& unzip -o /tmp/op.zip -d /usr/local/bin op \
