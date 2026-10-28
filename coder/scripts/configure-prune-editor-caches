@@ -1,0 +1,20 @@
+#!/bin/bash
+# Old editor versions pile up in every home volume (~546GB fleet-wide, 2026-10-27).
+# Anything touched in the last week is kept too, so an in-flight install or a second client's version survives.
+
+prune_old_versions() {
+    local dir=$1 keep=$2 pattern=$3
+    [ -d "$dir" ] || return 0
+
+    ls -1t "$dir" | grep -E "$pattern" | tail -n +"$((keep + 1))" | while read -r name; do
+        if [ -n "$(find "$dir/$name" -maxdepth 0 -mtime +7)" ]; then
+            echo "Pruning $dir/$name"
+            rm -rf "${dir:?}/$name"
+        fi
+    done
+}
+
+prune_old_versions "$HOME/.cache/code-server" 1 '^code-server-.*\.tar\.gz(\.incomplete)?$'
+prune_old_versions "$HOME/.vscode-server/cli/servers" 2 '^Stable-'
+
+exit 0
