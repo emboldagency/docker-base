@@ -14,7 +14,8 @@ prune_old_versions() {
     done
 }
 
-prune_old_versions "$HOME/.cache/code-server" 1 '^code-server-.*\.tar\.gz(\.incomplete)?$'
+prune_old_versions "$HOME/.cache/code-server" 1 '^code-server-.*\.tar\.gz$'
+prune_old_versions "$HOME/.cache/code-server" 0 '^code-server-.*\.tar\.gz\.incomplete$'
 prune_old_versions "$HOME/.vscode-server/cli/servers" 2 '^Stable-'
 
 exit 0
