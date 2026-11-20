@@ -29,6 +29,8 @@ ENV LANG=C.UTF-8 \
 # -----------------------------------------------------------------------------
 # System Core & Build Essentials
 # -----------------------------------------------------------------------------
+# Bump APT_REFRESH to force fresh apt layers past the registry build cache (security releases).
+ARG APT_REFRESH=2026-11-20
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 	apt-transport-https \
