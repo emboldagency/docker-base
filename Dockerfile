@@ -194,13 +194,15 @@ RUN --mount=type=secret,id=github_token \
 # -----------------------------------------------------------------------------
 # Global Runtime & Frameworks (Node/FNM/ZSH/Antidote)
 # -----------------------------------------------------------------------------
+# Pinned: fnm --lts moved to Node 26, which no longer ships corepack. Bump deliberately.
+ENV NODE_DEFAULT_MAJOR=24
 RUN export FNM_DIR=/opt/fnm \
 	&& mkdir -p /opt/fnm \
 	# fnm.vercel.app has intermittent TLS failures; GitHub is the same script, more reliable.
 	&& curl -fsSL https://raw.githubusercontent.com/Schniz/fnm/master/.ci/install.sh | bash -s -- --install-dir "/opt/fnm" --skip-shell \
 	&& ln -s /opt/fnm/fnm /usr/local/bin/fnm \
-	&& fnm install --lts --corepack-enabled \
-	&& fnm alias lts-latest default \
+	&& fnm install "$NODE_DEFAULT_MAJOR" --corepack-enabled \
+	&& fnm default "$NODE_DEFAULT_MAJOR" \
 	&& ln -s /opt/fnm/aliases/default/bin/node /usr/local/bin/node \
 	&& ln -s /opt/fnm/aliases/default/bin/npm /usr/local/bin/npm \
 	&& ln -s /opt/fnm/aliases/default/bin/npx /usr/local/bin/npx \
